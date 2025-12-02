@@ -38,6 +38,7 @@ public class SlingshotBall : MonoBehaviour
     private bool isDragging;
     private Camera mainCamera;
     private LineRenderer guideLine;
+    public bool isStop;
 
     // 【轨迹功能】轨迹核心变量
     private LineRenderer trajectoryLine; // 轨迹渲染器
@@ -176,6 +177,15 @@ public class SlingshotBall : MonoBehaviour
 
             guideLine.positionCount = 0;
             guideLine.enabled = false;
+        }
+
+        if (Input.GetMouseButtonUp(0))
+        {
+            isStop = true;
+        }
+        else
+        {
+            isStop = false;
         }
     }
 
