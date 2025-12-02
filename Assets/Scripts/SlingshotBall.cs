@@ -57,7 +57,7 @@ public class SlingshotBall : MonoBehaviour
         rb.mass = ballMass; // 强制赋值质量
         rb.gravityScale = 0; // 关闭重力（2D平面碰撞无需重力）
         rb.freezeRotation = true;
-        rb.drag = 0f; // 阻尼=0，避免速度衰减
+        rb.drag = 2f; // 阻尼=2，避免速度衰减
         rb.angularDrag = 0f;
         rb.interpolation = RigidbodyInterpolation2D.None; // 关闭插值，提升精度
         rb.collisionDetectionMode = CollisionDetectionMode2D.Continuous; // 防穿透
@@ -257,13 +257,7 @@ public class SlingshotBall : MonoBehaviour
         collisionOtherVelAfter = v2Final;
         hasCollided = true;
 
-        // 调试日志
-        Debug.Log($"=== 动量守恒碰撞 ===");
-        Debug.Log($"自身质量：{m1} | 对方质量：{m2}");
-        Debug.Log($"碰撞前总动量：{m1 * v1.magnitude + m2 * v2.magnitude:F2}");
-        Debug.Log($"碰撞后总动量：{m1 * v1Final.magnitude + m2 * v2Final.magnitude:F2}"); // 应相等
-        Debug.Log($"碰撞前：自身{v1:F2} | 对方{v2:F2}");
-        Debug.Log($"碰撞后：自身{v1Final:F2} | 对方{v2Final:F2}");
+       
 
         // 【轨迹功能】碰撞时强制记录轨迹点（确保反弹轨迹连续）
         RecordTrajectoryOnCollision();
