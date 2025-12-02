@@ -1,106 +1,333 @@
+using System;
+using System.Collections;
 using UnityEngine;
 
-[RequireComponent(typeof(Rigidbody2D))]
-public class EnemyAI2D : MonoBehaviour
-{	//获取角色坐标
+/// <summary>
+/// 敌人回合制 AI：
+/// - BeginTurn() 在回合开始时由回合管理器调用
+/// - 自动根据与玩家距离选择：追击 / 逃跑 / 冲刺 / 原地思考
+/// - 等到移动基本停下时，自动结束回合并调用 OnTurnEnd 回调
+/// 
+/// 依赖组件：
+/// - EnemyBallPhysics（拿刚体、质量等）
+/// - EnemyVisual2D（切换颜色表示状态）
+/// </summary>
+[RequireComponent(typeof(EnemyBallPhysics))]
+[RequireComponent(typeof(EnemyVisual2D))]
+public class EnemyAI : MonoBehaviour
+{
+	public enum EnemyState
+	{
+		Idle,       // 发呆 / 待机
+		Chase,      // 普通追击
+		Flee,       // 远离玩家
+		Dash        // 冲刺（强力一击）
+	}
+
+	[Header("基础引用")]
+	[Tooltip("玩家物体（最好是玩家小球），如果不指定会按Tag=Player自动寻找")]
 	public Transform player;
 
-	public float moveForce = 5f;          // 普通移动力度
-	public float dashForce = 15f;         // 冲撞力度
-	public float attackRange = 5f;        // 攻击距离
-	public float chaseMinDistance = 2f;   // 认为“太远”开始追击的阈值
+	private EnemyBallPhysics enemyPhysics;
+	private EnemyVisual2D enemyVisual;
+	private Rigidbody2D rb;
 
-	public float arenaRadius = 10f;       // 场地半径（假设中心在 (0,0)）
-	public float safeEdgeDistance = 10f;   // 距离边缘小于这个就认为危险
+	[Header("状态与行为参数")]
+	[Tooltip("感知距离：超过这个距离就基本不鸟玩家")]
+	public float detectRange = 10f;
 
-	public float dashCooldownTime = 2f;		// 冲撞冷却时间
-	private float dashCooldown = 0f;		
+	[Tooltip("追击距离阈值：距离在 fleeDistance ~ chaseRange 之间会追上去")]
+	public float chaseRange = 7f;
 
-	private Rigidbody2D rb;				   //刚体
-	private EnemyVisual2D visual;		   //可视化
+	[Tooltip("逃跑阈值：距离过近会优先远离玩家")]
+	public float fleeDistance = 3f;
 
-	void Awake()
+	[Tooltip("冲刺触发距离：进入这个范围，有概率发动 Dash 强力冲刺")]
+	public float dashDistance = 5f;
+
+	[Tooltip("普通追击/逃跑的冲量大小（越大越远）")]
+	public float moveImpulse = 5f;
+
+	[Tooltip("冲刺时的冲量大小")]
+	public float dashImpulse = 8f;
+
+	[Tooltip("AI 思考时间（回合开始到真正行动的延迟）")]
+	public float thinkTime = 0.25f;
+
+	[Tooltip("回合结束判断：速度小于该阈值时认为“动完了”")]
+	public float endTurnSpeedThreshold = 0.05f;
+
+	[Tooltip("安全上限：一个回合内最多移动多久（防止卡死）")]
+	public float maxTurnDuration = 2.0f;
+
+	[Tooltip("Dash 的随机概率（0~1），在距离合适时才会用到")]
+	[Range(0f, 1f)]
+	public float dashProbability = 0.4f;
+
+	[Header("调试")]
+	public EnemyState currentState = EnemyState.Idle;
+	[Tooltip("只读：当前是否是敌人的回合")]
+	public bool isMyTurn;
+
+	// 回合结束时，由外部回合管理器注册这个回调
+	public Action OnTurnEnd;
+
+	private Coroutine turnRoutine;
+
+	private System.Random rng = new System.Random();
+
+	private void Awake()
 	{
-		rb = GetComponent<Rigidbody2D>();
-		visual = GetComponent<EnemyVisual2D>();
-	}
+		enemyPhysics = GetComponent<EnemyBallPhysics>();
+		enemyVisual = GetComponent<EnemyVisual2D>();
+		rb = enemyPhysics.rb;
 
-	void Update()
-	{
-		if (dashCooldown > 0f)//碰撞cd
-			dashCooldown -= Time.deltaTime;
-	}
-
-	void FixedUpdate()
-	{
-		DecideAndAct();
-	}
-
-	void DecideAndAct()
-	{	//角色死亡
-		if (player == null) return;
-
-		Vector2 myPos = rb.position;
-		Vector2 playerPos = player.position;
-
-		Vector2 toPlayer = (playerPos - myPos).normalized;
-		float distToPlayer = toPlayer.magnitude;
-
-		// 计算离场地中心和边缘的距离
-		float distFromCenter = myPos.magnitude;                 // 如果场地中心在 (0,0)
-		float distToEdge = arenaRadius - distFromCenter;        // 距离边界的剩余距离
-
-		// 体型比较：用 x 轴缩放近似
-		bool playerBigger = player.localScale.x > transform.localScale.x * 1.1f;
-		bool canDash = dashCooldown <= 0f;
-
-		// ======= 决策树 =======
-
-		// 1. 我在边缘附近且打不过玩家 → 往中心跑
-		if (distToEdge < safeEdgeDistance && playerBigger)
+		if (player == null)
 		{
-			visual?.SetFlee();
+			GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
+			if (playerObj != null)
+			{
+				player = playerObj.transform;
+			}
+			else
+			{
+				Debug.LogWarning("[EnemyAI] 未找到 Tag 为 Player 的对象，请在 Inspector 手动指定 player 引用。");
+			}
+		}
+	}
 
-			Vector2 dirToCenter = (-myPos).normalized; // 从我指向 (0,0)
-			Move(dirToCenter);
+	/// <summary>
+	/// 在“敌人回合开始”时由回合管理器调用
+	/// </summary>
+	public void BeginTurn(Action onTurnEndCallback = null)
+	{
+		if (isMyTurn)
+		{
+			// 防止重复开始
 			return;
 		}
 
-		// 2. 我不比他小太多 + 他在攻击范围内 + 冲撞CD好 → 冲撞
-		if (!playerBigger && distToPlayer < attackRange && canDash)
-		{
-			visual?.SetDash();
+		isMyTurn = true;
+		OnTurnEnd = onTurnEndCallback;
 
-			Dash(toPlayer.normalized);
-			return;
+		// 保守一点：防止上一次 Coroutine 没停干净
+		if (turnRoutine != null)
+		{
+			StopCoroutine(turnRoutine);
+		}
+		turnRoutine = StartCoroutine(TurnLogic());
+	}
+
+	/// <summary>
+	/// 主回合逻辑：思考 → 选择行为 → 施加冲量 → 等待停下 → 结束回合
+	/// </summary>
+	private IEnumerator TurnLogic()
+	{
+		// 小小的“思考”时间，避免敌人像机器人一样瞬时行动
+		yield return new WaitForSeconds(thinkTime);
+
+		if (player == null)
+		{
+			// 找不到玩家，就随机晃悠一下
+			ChooseStateWithoutPlayer();
+		}
+		else
+		{
+			ChooseStateByDistance();
 		}
 
-		// 3. 玩家太远 → 追击
-		if (distToPlayer > chaseMinDistance)
+		// 根据状态执行对应行动（施加冲量、切换颜色等）
+		DoActionByState();
+
+		// 等待敌人“动完了”
+		float timer = 0f;
+		while (timer < maxTurnDuration)
 		{
-			visual?.SetChase();
+			timer += Time.deltaTime;
 
+			if (rb == null) break;
 
-			Move(toPlayer.normalized);
-			return;
+			if (rb.velocity.magnitude < endTurnSpeedThreshold)
+			{
+				break;
+			}
+
+			yield return null;
 		}
 
-		// 4. 既不该逃也不该冲又不该追 → 小范围绕圈骚扰
-		visual?.SetNormal();
+		// 保险：强制刹车一下，防止残余速度导致下个回合误判
+		if (rb != null)
+		{
+			rb.velocity = Vector2.zero;
+			rb.angularVelocity = 0f;
+		}
 
-		Vector2 right = new Vector2(-toPlayer.y, toPlayer.x).normalized; // 垂直方向
-		Vector2 moveDir = (right * 0.7f + toPlayer.normalized * 0.3f).normalized;
-		Move(moveDir);
+		EndTurn();
 	}
 
-	void Move(Vector2 direction)
+	/// <summary>
+	/// 根据与玩家的距离选择状态
+	/// </summary>
+	private void ChooseStateByDistance()
 	{
-		rb.AddForce(direction * moveForce, ForceMode2D.Force);
+		float dist = Vector2.Distance(transform.position, player.position);
+
+		if (dist > detectRange)
+		{
+			// 玩家太远：基本当空气
+			currentState = EnemyState.Idle;
+		}
+		else if (dist < fleeDistance)
+		{
+			// 太近了：优先远离
+			currentState = EnemyState.Flee;
+		}
+		else if (dist < dashDistance)
+		{
+			// 进入冲刺范围，有一定概率 Dash
+			float p = (float)rng.NextDouble();
+			currentState = (p < dashProbability) ? EnemyState.Dash : EnemyState.Chase;
+		}
+		else if (dist < chaseRange)
+		{
+			// 中距离：跟上去
+			currentState = EnemyState.Chase;
+		}
+		else
+		{
+			// 在感知范围里，但又不急，就当发呆
+			currentState = EnemyState.Idle;
+		}
 	}
 
-	void Dash(Vector2 direction)
+	/// <summary>
+	/// 找不到玩家时的兜底：随机晃一晃
+	/// </summary>
+	private void ChooseStateWithoutPlayer()
 	{
-		rb.AddForce(direction * dashForce, ForceMode2D.Impulse);
-		dashCooldown = dashCooldownTime;
+		// 约69%的概率原地发呆，31%随便动一下
+		float p = (float)rng.NextDouble();
+		if (p < 0.69f)
+		{
+			currentState = EnemyState.Idle;
+		}
+		else
+		{
+			currentState = EnemyState.Chase; // 当作“随便找个方向乱撞”
+		}
 	}
+
+	/// <summary>
+	/// 执行当前状态对应的动作（改变颜色 + 施加冲量）
+	/// </summary>
+	private void DoActionByState()
+	{
+		if (rb == null) return;
+
+		Vector2 dir = Vector2.zero;
+
+		switch (currentState)
+		{
+			case EnemyState.Idle:
+				enemyVisual.SetNormal();
+				// 轻微随机晃动一下，避免完全静止像假人
+				dir = UnityEngine.Random.insideUnitCircle.normalized;
+				rb.AddForce(dir * (moveImpulse * 0.3f), ForceMode2D.Impulse);
+				break;
+
+			case EnemyState.Chase:
+				enemyVisual.SetChase();
+				if (player != null)
+				{
+					dir = ((Vector2)(player.position - transform.position)).normalized;
+				}
+				else
+				{
+					dir = UnityEngine.Random.insideUnitCircle.normalized;
+				}
+				rb.AddForce(dir * moveImpulse, ForceMode2D.Impulse);
+				break;
+
+			case EnemyState.Flee:
+				enemyVisual.SetFlee();
+				if (player != null)
+				{
+					dir = ((Vector2)(transform.position - player.position)).normalized;
+				}
+				else
+				{
+					dir = UnityEngine.Random.insideUnitCircle.normalized;
+				}
+				rb.AddForce(dir * moveImpulse, ForceMode2D.Impulse);
+				break;
+
+			case EnemyState.Dash:
+				enemyVisual.SetDash();
+				if (player != null)
+				{
+					dir = ((Vector2)(player.position - transform.position)).normalized;
+				}
+				else
+				{
+					dir = UnityEngine.Random.insideUnitCircle.normalized;
+				}
+				rb.AddForce(dir * dashImpulse, ForceMode2D.Impulse);
+				break;
+		}
+	}
+
+	/// <summary>
+	/// 结束敌人当前回合，并通知回合管理器
+	/// </summary>
+	private void EndTurn()
+	{
+		isMyTurn = false;
+
+		// 回到普通颜色（正常状态）
+		if (enemyVisual != null)
+		{
+			enemyVisual.SetNormal();
+		}
+
+		// 调用外部注册的回调
+		OnTurnEnd?.Invoke();
+		OnTurnEnd = null;
+
+		// 清掉协程引用
+		turnRoutine = null;
+	}
+
+	#region 实用公开接口
+
+	/// <summary>
+	/// 外部如果想强制切换状态（比如被某张卡牌嘲讽、恐惧等）可以调用这个。
+	/// 下个回合开始时依旧会根据距离重新决策。
+	/// </summary>
+	public void ForceSetState(EnemyState newState)
+	{
+		currentState = newState;
+	}
+
+	/// <summary>
+	/// 紧急打断当前回合（例如战斗结束、敌人死亡）
+	/// </summary>
+	public void ForceInterruptTurn()
+	{
+		if (turnRoutine != null)
+		{
+			StopCoroutine(turnRoutine);
+			turnRoutine = null;
+		}
+
+		isMyTurn = false;
+		OnTurnEnd = null;
+
+		if (rb != null)
+		{
+			rb.velocity = Vector2.zero;
+			rb.angularVelocity = 0f;
+		}
+	}
+
+	#endregion
 }

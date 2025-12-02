@@ -13,7 +13,7 @@ public class TurnManager : MonoBehaviour
     public TurnState currentTurnState = TurnState.BallRound;
 
     public SlingshotBall ballScript; // 控制小球的脚本
-    public EnemyAI2D enemyScript; // 控制敌人的脚本
+    public EnemyAI enemyScript; // 控制敌人的脚本
 
     void Start()
     {
@@ -34,7 +34,8 @@ public class TurnManager : MonoBehaviour
 
                 case TurnState.EnemyRound: // 敌人回合
                     StartEnemyRound(); // 启动 EnemyRound
-                    yield return new WaitForSeconds(1f); 
+					yield return new WaitUntil(() => enemyScript != null && enemyScript.isMyTurn == false);
+					yield return new WaitForSeconds(0.3f);
                     EndEnemyRound(); // 结束 EnemyRound
                     break;
             }
@@ -63,7 +64,11 @@ public class TurnManager : MonoBehaviour
     {
         // 启用敌人控制脚本
         if (enemyScript != null)
-            enemyScript.enabled = true;
+        {
+			enemyScript.BeginTurn();
+			enemyScript.enabled = true;
+		}
+            
 
         if (ballScript != null)
             ballScript.enabled = false; // 禁用小球控制脚本，防止玩家在 EnemyRound 内操作
