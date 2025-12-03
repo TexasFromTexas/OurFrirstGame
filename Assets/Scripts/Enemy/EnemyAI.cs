@@ -1,7 +1,7 @@
 using System;
 using System.Collections;
 using UnityEngine;
-
+using static EnemieBehaviorProfile;
 /// <summary>
 /// 敌人回合制 AI：
 /// - BeginTurn() 在回合开始时由回合管理器调用
@@ -31,38 +31,43 @@ public class EnemyAI : MonoBehaviour
 	private EnemyBallPhysics enemyPhysics;
 	private EnemyVisual2D enemyVisual;
 	private Rigidbody2D rb;
+	public EnemieBehaviorProfile behavior;
 
 	[Header("状态与行为参数")]
 	[Tooltip("感知距离：超过这个距离就基本不鸟玩家")]
-	public float detectRange = 10f;
+	private float detectRange;
 
 	[Tooltip("追击距离阈值：距离在 fleeDistance ~ chaseRange 之间会追上去")]
-	public float chaseRange = 7f;
+	private float chaseRange;
 
 	[Tooltip("逃跑阈值：距离过近会优先远离玩家")]
-	public float fleeDistance = 3f;
+	private float fleeDistance;
 
 	[Tooltip("冲刺触发距离：进入这个范围，有概率发动 Dash 强力冲刺")]
-	public float dashDistance = 5f;
+	private float dashDistance;
 
 	[Tooltip("普通追击/逃跑的冲量大小（越大越远）")]
-	public float moveImpulse = 5f;
+	private float moveImpulse;
 
 	[Tooltip("冲刺时的冲量大小")]
-	public float dashImpulse = 8f;
+	private float dashImpulse;
 
 	[Tooltip("AI 思考时间（回合开始到真正行动的延迟）")]
-	public float thinkTime = 0.25f;
+	private float thinkTime;
 
 	[Tooltip("回合结束判断：速度小于该阈值时认为“动完了”")]
-	public float endTurnSpeedThreshold = 0.05f;
+	private float endTurnSpeedThreshold;
 
 	[Tooltip("安全上限：一个回合内最多移动多久（防止卡死）")]
-	public float maxTurnDuration = 2.0f;
+	private float maxTurnDuration;
 
+	[Header("性格系数 0~1")]
+	[Range(0f, 1f)] public float aggressiveness = 0.5f; // 爱冲上去程度
+	[Range(0f, 1f)] public float cowardness = 0.0f;     // 害怕程度
+	[Range(0f, 1f)] public float backstabby = 0.0f;     // 喜欢绕屁股打
 	[Tooltip("Dash 的随机概率（0~1），在距离合适时才会用到")]
 	[Range(0f, 1f)]
-	public float dashProbability = 0.4f;
+	private float dashProbability;
 
 	[Header("调试")]
 	public EnemyState currentState = EnemyState.Idle;
@@ -80,7 +85,8 @@ public class EnemyAI : MonoBehaviour
 	{
 		enemyPhysics = GetComponent<EnemyBallPhysics>();
 		enemyVisual = GetComponent<EnemyVisual2D>();
-		rb = enemyPhysics.rb;
+		rb = enemyPhysics != null ? enemyPhysics.rb : null;
+
 
 		if (player == null)
 		{
@@ -93,6 +99,24 @@ public class EnemyAI : MonoBehaviour
 			{
 				Debug.LogWarning("[EnemyAI] 未找到 Tag 为 Player 的对象，请在 Inspector 手动指定 player 引用。");
 			}
+		}
+
+		if(behavior != null)
+		{
+			detectRange = behavior.detectRange;
+			chaseRange = behavior.chaseRange;
+			dashDistance = behavior.dashDistance;
+			fleeDistance = behavior.fleeDistance;
+			moveImpulse = behavior.moveImpulse;
+			dashImpulse = behavior.dashImpulse;
+			dashProbability = behavior.dashProbability; // 越凶越爱 Dash
+			aggressiveness = behavior.aggressiveness;
+			cowardness= behavior.cowardness;
+			backstabby = behavior.backstabby;
+
+		    thinkTime = behavior.thinkTime;
+			endTurnSpeedThreshold = behavior.endTurnSpeedThreshold;
+			maxTurnDuration = behavior.maxTurnDuration;
 		}
 	}
 
@@ -133,7 +157,7 @@ public class EnemyAI : MonoBehaviour
 		}
 		else
 		{
-			ChooseStateByDistance();
+			DecideAction();
 		}
 
 		// 根据状态执行对应行动（施加冲量、切换颜色等）
@@ -175,6 +199,7 @@ public class EnemyAI : MonoBehaviour
 		if (dist > detectRange)
 		{
 			// 玩家太远：基本当空气
+			Debug.LogWarning("[EnemyAI] 玩家距离过远，敌人状态切换为 Idle");
 			currentState = EnemyState.Idle;
 		}
 		else if (dist < fleeDistance)
@@ -329,5 +354,113 @@ public class EnemyAI : MonoBehaviour
 		}
 	}
 
+	public float GetSizeRatio()
+	{
+		if (!player) return 1f;
+		float mySize = (transform.localScale.x + transform.localScale.y) * 0.5f;
+		float pSize = (player.localScale.x + player.localScale.y) * 0.5f;
+		if (mySize <= 0.0001f) return 1f;
+		return pSize/mySize;
+	}
+
+	public float ScoreChase(float dist,float sizeRatio) {
+		float s = 0f;
+		// 距离在 chaseRange 附近最想追
+		s += Mathf.InverseLerp(chaseRange, dashDistance, dist);
+		// 距离越近越想冲刺
+		s += Mathf.InverseLerp(dashDistance, fleeDistance, dist);
+		// 大小比例越大越想冲刺
+		s += Mathf.InverseLerp(1f, 2f, sizeRatio);
+		// 越凶越爱 Dash
+		if (behavior) s *= Mathf.Lerp(0.5f, 1.5f, behavior.aggressiveness);
+
+		return s;
+	}
+
+	public float ScoreDash(float dist, float sizeRatio)
+	{
+		float s = 0f;
+		// 只有在 dashDistance 内才考虑 Dash
+		s += Mathf.InverseLerp(dashDistance * 1.5f, dashDistance * 0.5f, dist);
+		// 玩家比我小 → 更敢 Dash
+		s += Mathf.InverseLerp(1.5f, 0.5f, sizeRatio);
+		if (behavior) s *= Mathf.Lerp(0.5f, 2.0f, behavior.aggressiveness);
+		return s;
+	}
+
+	public float ScoreFlee(float dist, float sizeRatio) {
+		float s = 0f;
+		// 越近越想跑
+		s += Mathf.InverseLerp(fleeDistance * 2f, fleeDistance * 0.3f, dist);
+		// 玩家比我大 → 更想跑
+		s += Mathf.InverseLerp(0.8f, 1.8f, sizeRatio);
+		if (behavior) s *= Mathf.Lerp(0.5f, 2.0f, behavior.cowardness);
+		return s;
+	}
+
+	public float ScoreBackstab(float dist, float sizeRatio)
+	{
+		if (!player || behavior == null) return 0f;
+		if (behavior.backstabby <= 0f) return 0f;
+
+		float s = 0f;
+		// 偷袭：希望距离中等（不要太远，也不要贴脸）
+		s += Mathf.InverseLerp(chaseRange, dashDistance, dist);
+
+		// 玩家越大，越想绕屁股打
+		s += Mathf.InverseLerp(0.8f, 1.5f, sizeRatio);
+
+		// 乘上“阴险度”
+		s *= behavior.backstabby;
+		return s;
+	}
+	void DecideAction()
+	{
+		if (!player)
+		{
+			currentState = EnemyState.Idle;
+			return;
+		}
+		float dist = Vector2.Distance(transform.position, player.position);
+		float sizeRatio = GetSizeRatio();
+
+		float chaseScore = ScoreChase(dist, sizeRatio);
+		float dashScore = ScoreDash(dist, sizeRatio);
+		float fleeScore = ScoreFlee(dist, sizeRatio);
+		float backstabScore = ScoreBackstab(dist, sizeRatio);
+		float idleScore = 0.2f; // 基本发呆
+
+		// 针对不同种类再做一点加权
+		if (behavior)
+		{
+			switch (behavior.kind)
+			{
+				case EnemyKind.Brute:
+					dashScore *= 1.3f;
+					fleeScore *= 0.6f;
+					break;
+				case EnemyKind.Assassin:
+					backstabScore *= 1.5f;
+					fleeScore *= 1.2f;
+					break;
+				case EnemyKind.Grunt:
+					// 普通小兵，比较平均
+					break;
+			}
+		}
+
+		float maxScore = Mathf.Max(chaseScore, dashScore, fleeScore, backstabScore, idleScore);
+
+		if (maxScore == dashScore)
+			currentState = EnemyState.Dash;
+		else if (maxScore == backstabScore)
+			currentState = EnemyState.Chase;   // 行为上仍然是 Chase，但你可以在移动方向上做“绕后”处理
+		else if (maxScore == fleeScore)
+			currentState = EnemyState.Flee;
+		else if (maxScore == chaseScore)
+			currentState = EnemyState.Chase;
+		else
+			currentState = EnemyState.Idle;
+	}
 	#endregion
 }
