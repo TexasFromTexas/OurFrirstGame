@@ -1,7 +1,7 @@
 using System.Collections;
 using UnityEngine;
 
-public class TurnManager : MonoBehaviour
+public class Round : MonoBehaviour
 {
     public enum TurnState
     {
@@ -9,7 +9,8 @@ public class TurnManager : MonoBehaviour
         EnemyRound, // 现在是 EnemyRound
         GameOver
     }
-    public float time = 10f;
+    public float ballTime = 1f;
+    public float enemyTime = 0.3f;
     public TurnState currentTurnState = TurnState.BallRound;
 
     public SlingshotBall ballScript; // 控制小球的脚本
@@ -28,14 +29,14 @@ public class TurnManager : MonoBehaviour
                 case TurnState.BallRound: // 玩家回合
                     StartBallRound(); // 启动 BallRound
                     yield return new WaitUntil(() => ballScript.isStop);
-                    yield return new WaitForSeconds(1f);
+                    yield return new WaitForSeconds(ballTime);
                     EndBallRound(); // 结束 BallRound
                     break;
 
                 case TurnState.EnemyRound: // 敌人回合
                     StartEnemyRound(); // 启动 EnemyRound
 					yield return new WaitUntil(() => enemyScript != null && enemyScript.isMyTurn == false);
-					yield return new WaitForSeconds(0.3f);
+					yield return new WaitForSeconds(enemyTime);
                     EndEnemyRound(); // 结束 EnemyRound
                     break;
             }
