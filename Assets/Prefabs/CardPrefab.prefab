@@ -226,11 +226,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   cardImage: {fileID: 4534617596130608022}
-  NameText: {fileID: 0}
-  CostText: {fileID: 0}
-  Description: {fileID: 0}
-  Bodytype: {fileID: 0}
-  Hardness: {fileID: 0}
+  Cardname: {fileID: 4534617596130608022}
   Type: {fileID: 4534617596130608022}
 --- !u!23 &3102078079527744978
 MeshRenderer:
