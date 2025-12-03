@@ -4,18 +4,18 @@ using UnityEngine;
 public class PlayerDamageReceiver : MonoBehaviour
 {
     private HealthSystem_New health; // 自身血量组件
-    private TurnManager turnManager; // 回合管理器（判断敌人回合）
+    private Round Round; // 回合管理器（判断敌人回合）
 
     private void Awake()
     {
         // 获取组件（无需修改原有脚本，直接查找）
         health = GetComponent<HealthSystem_New>();
-        turnManager = FindObjectOfType<TurnManager>();
+        Round = FindObjectOfType<Round>();
 
         // 日志1：检查组件获取结果
         Debug.Log($"【玩家扣血监听】初始化：");
         Debug.Log($"→ 血量组件是否获取到：{health != null}");
-        Debug.Log($"→ 回合管理器是否获取到：{turnManager != null}");
+        Debug.Log($"→ 回合管理器是否获取到：{Round != null}");
         Debug.Log($"→ 玩家小球标签：{gameObject.tag}");
     }
 
@@ -31,17 +31,17 @@ public class PlayerDamageReceiver : MonoBehaviour
             Debug.LogError("【玩家扣血监听】失败：未挂载HealthSystem_New组件！");
             return;
         }
-        if (turnManager == null)
+        if (Round == null)
         {
-            Debug.LogError("【玩家扣血监听】失败：场景中找不到TurnManager！");
+            Debug.LogError("【玩家扣血监听】失败：场景中找不到Round！");
             return;
         }
 
         // 日志3：打印当前回合状态
-        Debug.Log($"【玩家扣血监听】当前回合：{turnManager.currentTurnState} | 需要EnemyRound");
+        Debug.Log($"【玩家扣血监听】当前回合：{Round.currentTurnState} | 需要EnemyRound");
 
         // 条件2：当前是敌人回合（EnemyRound）
-        if (turnManager.currentTurnState != TurnManager.TurnState.EnemyRound)
+        if (Round.currentTurnState != Round.TurnState.EnemyRound)
         {
             Debug.LogError($"【玩家扣血监听】失败：当前不是敌人回合！");
             return;
