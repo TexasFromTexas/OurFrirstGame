@@ -23,6 +23,6 @@ MonoBehaviour:
   endTurnSpeedThreshold: 0.05
   maxTurnDuration: 2
   aggressiveness: 0.4
-  cowardness: 0.3
+  cowardness: 1
   backstabby: 0.2
   dashProbability: 0.1
