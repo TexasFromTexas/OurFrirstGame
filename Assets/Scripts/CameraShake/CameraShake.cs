@@ -10,7 +10,7 @@ public class CameraShake : MonoBehaviour
     private Camera cam;
     
     // Start is called before the first frame update
-    void Start()
+    void Awake()
     {
         cam = GetComponent<Camera>();
         CameraPos = transform.position;

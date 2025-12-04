@@ -8,11 +8,7 @@ public class Card : MonoBehaviour, IPointerClickHandler, IBeginDragHandler, IDra
 {
     [Header("UI引用")]
     public Image cardImage;
-    public TextMeshProUGUI NameText;
-    public TextMeshProUGUI CostText;
-    public TextMeshProUGUI Description;
-    public TextMeshProUGUI Bodytype;
-    public TextMeshProUGUI Hardness;
+    public Image Cardname;
     public Image Type;
 
     // 卡牌数据
@@ -27,19 +23,14 @@ public class Card : MonoBehaviour, IPointerClickHandler, IBeginDragHandler, IDra
     {
         _cardData = data;
         cardImage.sprite = data.CardSprite;
-        NameText.text = data.CardName;
-        CostText.text = data.Cost.ToString();
-        Description.text = data.Description;
 
         // 根据卡牌类型设置数值和图标
         switch (data.cardType)
         {
             case CardData.CardType.Bodytype:
-                Bodytype.text = $"+{data.Bodytype} 体型";
                 Type.color = Color.red; // 体型红色
                 break;
             case CardData.CardType.Hardness:
-                Hardness.text = $"+{data.Hardness} 硬度";
                 Type.color = Color.blue; // 硬度蓝色
                 break;
             case CardData.CardType.Item:

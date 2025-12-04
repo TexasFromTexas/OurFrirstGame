@@ -13,7 +13,7 @@ using static EnemieBehaviorProfile;
 /// - EnemyVisual2D（切换颜色表示状态）
 /// </summary>
 [RequireComponent(typeof(EnemyBallPhysics))]
-[RequireComponent(typeof(EnemyVisual2D))]
+[RequireComponent(typeof(EnemyVisual))]
 public class EnemyAI : MonoBehaviour
 {
 	public enum EnemyState
@@ -28,38 +28,38 @@ public class EnemyAI : MonoBehaviour
 	[Tooltip("玩家物体（最好是玩家小球），如果不指定会按Tag=Player自动寻找")]
 	public Transform player;
 
-	private EnemyBallPhysics enemyPhysics;
-	private EnemyVisual2D enemyVisual;
-	private Rigidbody2D rb;
+	protected EnemyBallPhysics enemyPhysics;
+	protected EnemyVisual enemyVisual;
+	protected Rigidbody2D rb;
 	public EnemieBehaviorProfile behavior;
 
 	[Header("状态与行为参数")]
 	[Tooltip("感知距离：超过这个距离就基本不鸟玩家")]
-	private float detectRange;
+	protected float detectRange;
 
 	[Tooltip("追击距离阈值：距离在 fleeDistance ~ chaseRange 之间会追上去")]
-	private float chaseRange;
+	protected float chaseRange;
 
 	[Tooltip("逃跑阈值：距离过近会优先远离玩家")]
-	private float fleeDistance;
+	protected float fleeDistance;
 
 	[Tooltip("冲刺触发距离：进入这个范围，有概率发动 Dash 强力冲刺")]
-	private float dashDistance;
+	protected float dashDistance;
 
 	[Tooltip("普通追击/逃跑的冲量大小（越大越远）")]
-	private float moveImpulse;
+	protected float moveImpulse;
 
 	[Tooltip("冲刺时的冲量大小")]
-	private float dashImpulse;
+	protected float dashImpulse;
 
 	[Tooltip("AI 思考时间（回合开始到真正行动的延迟）")]
-	private float thinkTime;
+	protected float thinkTime;
 
 	[Tooltip("回合结束判断：速度小于该阈值时认为“动完了”")]
-	private float endTurnSpeedThreshold;
+	protected float endTurnSpeedThreshold;
 
 	[Tooltip("安全上限：一个回合内最多移动多久（防止卡死）")]
-	private float maxTurnDuration;
+	protected float maxTurnDuration;
 
 	[Header("性格系数 0~1")]
 	[Range(0f, 1f)] public float aggressiveness = 0.5f; // 爱冲上去程度
@@ -67,7 +67,7 @@ public class EnemyAI : MonoBehaviour
 	[Range(0f, 1f)] public float backstabby = 0.0f;     // 喜欢绕屁股打
 	[Tooltip("Dash 的随机概率（0~1），在距离合适时才会用到")]
 	[Range(0f, 1f)]
-	private float dashProbability;
+	protected float dashProbability;
 
 	[Header("调试")]
 	public EnemyState currentState = EnemyState.Idle;
@@ -81,10 +81,10 @@ public class EnemyAI : MonoBehaviour
 
 	private System.Random rng = new System.Random();
 
-	private void Awake()
+	protected virtual void Awake()
 	{
 		enemyPhysics = GetComponent<EnemyBallPhysics>();
-		enemyVisual = GetComponent<EnemyVisual2D>();
+		enemyVisual = GetComponent<EnemyVisual>();
 		rb = enemyPhysics != null ? enemyPhysics.rb : null;
 
 
@@ -123,7 +123,7 @@ public class EnemyAI : MonoBehaviour
 	/// <summary>
 	/// 在“敌人回合开始”时由回合管理器调用
 	/// </summary>
-	public void BeginTurn(Action onTurnEndCallback = null)
+	public virtual void BeginTurn(Action onTurnEndCallback = null)
 	{
 		if (isMyTurn)
 		{
@@ -414,7 +414,7 @@ public class EnemyAI : MonoBehaviour
 		s *= behavior.backstabby;
 		return s;
 	}
-	void DecideAction()
+	public virtual void DecideAction()
 	{
 		if (!player)
 		{

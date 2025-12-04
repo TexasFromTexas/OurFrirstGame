@@ -7,9 +7,12 @@ public class Hand : MonoBehaviour
     // 手牌最大数量（默认10张）
     public int maxHandSize = 10;
     // 卡牌间距
-    public float cardSpacing = 80f;
+    public float cardSpacing = 100f;
     // 手牌中心偏移（适配屏幕）
-    public Vector2 centerOffset = new Vector2(0, -200f);
+    public Vector2 centerOffset = new Vector2(0, -90f);
+
+    // 默认卡牌尺寸（可在 Inspector 调整）
+    public Vector2 defaultCardSize = new Vector2(200, 300);
 
     // 手牌列表（存储当前手牌的Card实例）
     private List<Card> _currentHand = new List<Card>();
@@ -30,30 +33,48 @@ public class Hand : MonoBehaviour
     // 添加卡牌到手牌
     public void AddCard(Card card)
     {
+        if (card == null)
+        {
+            Debug.LogError("Hand.AddCard: card 为 null");
+            return;
+        }
+        if (HandPanel == null)
+        {
+            Debug.LogError("HandPanel 未绑定，无法添加卡牌");
+            return;
+        }
+
         if (_currentHand.Count >= maxHandSize)
         {
             Debug.Log("手牌已满，无法抽牌！");
-            // 手牌满时，新抽的牌直接进入弃牌堆
             GameManager.Instance.DiscardPile.AddCard(card);
             Destroy(card.gameObject);
             return;
         }
 
         _currentHand.Add(card);
-        // 关键：直接用 handPanel 作为父容器（不依赖 GameManager）
-        card.transform.SetParent(HandPanel);
-        // 强制重置卡牌变换（清除所有异常）
-        card.transform.localPosition = Vector3.zero;
-        card.transform.localRotation = Quaternion.identity;
-        card.transform.localScale = Vector3.one;
-        // 确保卡牌是 UI 元素（避免渲染异常）
-        CanvasRenderer renderer = card.GetComponent<CanvasRenderer>();
-        if (renderer == null)
+
+        // 将父对象设为 HandPanel，并让本地坐标不变（避免缩放/位置跳动）
+        card.transform.SetParent(HandPanel, false);
+
+        // 确保是 UI 元素并初始化 RectTransform
+        RectTransform cardRect = card.GetComponent<RectTransform>();
+        if (cardRect == null)
         {
-            card.gameObject.AddComponent<CanvasRenderer>();
+            Debug.LogError($"卡牌 {card.name} 缺少 RectTransform，无法作为 UI 使用");
+            return;
         }
 
-        Debug.Log($"卡牌 {card.GetCardData().CardName} 已添加到 HandPanel 下");
+        cardRect.anchoredPosition = Vector2.zero;
+        cardRect.localRotation = Quaternion.identity;
+        cardRect.localScale = Vector3.one;
+        cardRect.sizeDelta = defaultCardSize; // 可调：默认尺寸
+
+        // CanvasRenderer 多为 Image 自动添加，若没有则补上
+        if (card.GetComponent<CanvasRenderer>() == null)
+            card.gameObject.AddComponent<CanvasRenderer>();
+
+        Debug.Log($"卡牌 {card.GetCardData()?.CardName ?? "未知"} 已添加到 HandPanel 下");
         RearrangeCards();
     }
 
@@ -73,8 +94,15 @@ public class Hand : MonoBehaviour
 
         // 直接获取 HandPanel 的实际宽度（无需通过 GameManager）
         float panelWidth = HandPanel.rect.width;
-        float maxAllowedSpacing = (panelWidth - 150) / (cardCount - 1); // 150=单张卡牌宽
-        float actualSpacing = Mathf.Min(cardSpacing, maxAllowedSpacing);
+        float cardWidth = defaultCardSize.x;
+
+        float actualSpacing = 0f;
+        if (cardCount > 1)
+        {
+            float maxAllowedSpacing = (panelWidth - cardWidth) / (cardCount - 1); // cardWidth = 单张卡牌宽
+            actualSpacing = Mathf.Min(cardSpacing, maxAllowedSpacing);
+        }
+
         float totalWidth = (cardCount - 1) * actualSpacing;
         float startX = -totalWidth / 2 + centerOffset.x;
 
@@ -88,7 +116,7 @@ public class Hand : MonoBehaviour
                 continue;
             }
             cardRect.anchoredPosition = new Vector2(startX + i * actualSpacing, centerOffset.y);
-            cardRect.sizeDelta = new Vector2(150, 220); // 强制卡牌宽高
+            cardRect.sizeDelta = defaultCardSize; // 强制卡牌宽高
             card.transform.SetSiblingIndex(i);
         }
     }
