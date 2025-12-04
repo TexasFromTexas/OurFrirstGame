@@ -199,6 +199,12 @@ public class SlingshotBall : MonoBehaviour
         {
             isStop = false;
         }
+
+        if (isStop)
+        {
+            if (Input.GetMouseButtonDown(0))
+                return;
+        }
     }
 
     // 【动量守恒核心：重构碰撞逻辑 - 修复质量相等时速度不变问题】
