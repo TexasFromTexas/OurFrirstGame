@@ -1,21 +1,23 @@
 using UnityEngine;
 
 /// <summary>
-/// 速度+半径双因素伤害脚本：半径每多1，多造成0.5伤害，内置调试半径
-/// 挂载到玩家/敌人小球上，兼容现有HealthSystem_New
+/// 速度+半径双因素伤害脚本：考虑物体缩放，获取实际碰撞半径
 /// </summary>
 public class SpeedAndSize : MonoBehaviour
 {
     [Header("基础伤害配置")]
-    [SerializeField] private float damageMultiplier = 0.5f; // 速度系数
+    [SerializeField] public float damageMultiplier = 0.5f; // 速度系数
     [SerializeField] private int baseDamage = 1; // 保底伤害
+                                                 // 在SpeedAndSize脚本中添加
+    [Header("最低攻击力")]
+    public int minDamage = 1; // 公开字段，允许外部修改
 
     [Header("半径伤害配置")]
-    [SerializeField] private float radiusDamageMultiplier = 0.5f; // 半径每差1，伤害变化量（可调整）
+    [SerializeField] private float radiusDamageMultiplier = 0.5f; // 半径每差1，伤害变化量
 
     [Header("调试半径（仅调试用）")]
     [SerializeField] private bool debugMode = false; // 开启调试模式（使用自定义半径）
-    [SerializeField] private float debugRadius = 1f; // 调试用的自定义半径（可在Inspector实时调整）
+    [SerializeField] private float debugRadius = 1f; // 调试用的自定义半径
 
     [Header("目标过滤")]
     [SerializeField] private bool damagePlayerOnly = false;
@@ -86,70 +88,83 @@ public class SpeedAndSize : MonoBehaviour
         float currentSpeed = rb.velocity.magnitude;
         float speedDamage = baseDamage + currentSpeed * damageMultiplier;
 
-        // 6. 计算半径伤害加成（核心功能）
-        float myRadius = GetMyRadius(); // 获取自身半径（调试模式用自定义值，否则用碰撞体实际半径）
-        float targetRadius = GetTargetRadius(collision.gameObject); // 获取对方半径
+        // 6. 计算半径伤害加成（核心修改：获取实际碰撞半径，考虑缩放）
+        float myRadius = GetMyRadius(); // 获取自身实际碰撞半径（考虑缩放）
+        float targetRadius = GetTargetRadius(collision.gameObject); // 获取目标实际碰撞半径（考虑缩放）
         float radiusDiff = myRadius - targetRadius; // 半径差值（我-对方）
-        float radiusBonus = radiusDiff * radiusDamageMultiplier; // 半径伤害加成（差值×系数）
+        float radiusBonus = radiusDiff * radiusDamageMultiplier; // 半径伤害加成
 
         // 7. 总伤害 = 速度伤害 + 半径加成，四舍五入
         int totalDamage = Mathf.RoundToInt(speedDamage + radiusBonus);
-        totalDamage = Mathf.Max(1, totalDamage); // 确保最低1点伤害
+        totalDamage = Mathf.Max(minDamage, totalDamage); // 使用修改后的minDamage
 
         // 8. 执行扣血
         targetHealth.TakeDamage(totalDamage);
 
-        // 调试日志
+        // 调试日志（新增：显示实际半径和缩放）
         Debug.Log($"✅【速度半径伤害】{gameObject.name} 碰撞 {collision.gameObject.name}！");
         Debug.Log($"→ 速度：{currentSpeed:F2} | 速度伤害：{speedDamage:F2}");
-        Debug.Log($"→ 我的半径：{myRadius:F2} | 对方半径：{targetRadius:F2} | 半径差：{radiusDiff:F2} | 半径加成：{radiusBonus:F2}");
-        Debug.Log($"→ 总伤害：{totalDamage} | 目标剩余血量：{targetHealth.GetCurrentHealth()}/{targetHealth.GetMaxHealth()}");
+       
+       
+        Debug.Log($"→ 目标剩余血量：{targetHealth.GetCurrentHealth()}/{targetHealth.GetMaxHealth()}");
     }
 
     /// <summary>
-    /// 获取自身半径（调试模式用自定义值，否则用碰撞体实际半径）
+    /// 获取自身实际碰撞半径（考虑物体缩放）
     /// </summary>
     private float GetMyRadius()
     {
         if (debugMode)
         {
-            return debugRadius; // 调试模式返回自定义半径
+            return debugRadius; // 调试模式：直接返回自定义半径（无需缩放）
         }
 
-        // 非调试模式，获取碰撞体实际半径
+        // 非调试模式：计算实际碰撞半径（考虑物体缩放）
         CircleCollider2D circleCollider = GetComponent<CircleCollider2D>();
         if (circleCollider != null)
         {
-            return circleCollider.radius;
+            // 圆形碰撞体：实际半径 = collider.radius × 物体缩放（取最大缩放轴，确保均匀缩放时正确）
+            float scale = Mathf.Max(transform.localScale.x, transform.localScale.y);
+            return circleCollider.radius * scale;
         }
 
-        // 如果不是CircleCollider2D，取BoxCollider2D的平均边长作为半径
+        // 方形碰撞体
         BoxCollider2D boxCollider = GetComponent<BoxCollider2D>();
         if (boxCollider != null)
         {
-            float avgSize = (boxCollider.size.x + boxCollider.size.y) / 4f; // 平均边长的1/4作为半径
+            // 计算实际边长（考虑缩放）
+            float actualSizeX = boxCollider.size.x * transform.localScale.x;
+            float actualSizeY = boxCollider.size.y * transform.localScale.y;
+            // 等效半径 = 平均边长的1/4（与原逻辑一致，但使用实际边长）
+            float avgSize = (actualSizeX + actualSizeY) / 4f;
             return avgSize;
         }
 
-        Debug.LogWarning($"【速度半径伤害】{gameObject.name} 没有CircleCollider2D或BoxCollider2D，使用默认半径1！");
+        Debug.LogWarning($"【速度半径伤害】{gameObject.name} 没有碰撞体，使用默认半径1！");
         return 1f;
     }
 
     /// <summary>
-    /// 获取目标半径
+    /// 获取目标实际碰撞半径（考虑目标物体缩放）
     /// </summary>
     private float GetTargetRadius(GameObject target)
     {
         CircleCollider2D circleCollider = target.GetComponent<CircleCollider2D>();
         if (circleCollider != null)
         {
-            return circleCollider.radius;
+            // 目标圆形碰撞体：实际半径 = collider.radius × 目标缩放
+            float targetScale = Mathf.Max(target.transform.localScale.x, target.transform.localScale.y);
+            return circleCollider.radius * targetScale;
         }
 
         BoxCollider2D boxCollider = target.GetComponent<BoxCollider2D>();
         if (boxCollider != null)
         {
-            float avgSize = (boxCollider.size.x + boxCollider.size.y) / 4f;
+            // 目标方形碰撞体：计算实际边长（考虑目标缩放）
+            float actualSizeX = boxCollider.size.x * target.transform.localScale.x;
+            float actualSizeY = boxCollider.size.y * target.transform.localScale.y;
+            // 等效半径 = 平均边长的1/4
+            float avgSize = (actualSizeX + actualSizeY) / 4f;
             return avgSize;
         }
 
@@ -157,14 +172,20 @@ public class SpeedAndSize : MonoBehaviour
     }
 
     /// <summary>
-    /// （可选）Gizmos绘制调试半径（场景视图可视化）
+    /// 调试绘制：显示实际碰撞半径（考虑缩放）
     /// </summary>
     private void OnDrawGizmos()
     {
         if (debugMode)
         {
             Gizmos.color = Color.yellow;
-            Gizmos.DrawWireSphere(transform.position, debugRadius); // 绘制调试半径
+            Gizmos.DrawWireSphere(transform.position, debugRadius); // 调试模式：绘制自定义半径
+        }
+        else
+        {
+            // 非调试模式：绘制实际碰撞半径（考虑缩放）
+            Gizmos.color = Color.cyan;
+            Gizmos.DrawWireSphere(transform.position, GetMyRadius());
         }
     }
 }
