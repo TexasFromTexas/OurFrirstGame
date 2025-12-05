@@ -1,7 +1,7 @@
 using UnityEngine;
 
 /// <summary>
-/// 小球参数管理脚本：获取和修改生命值、最低攻击力、大小
+/// 小球参数管理脚本：自动同步 + 支持外部脚本直接修改
 /// </summary>
 [RequireComponent(typeof(HealthSystem_New), typeof(SpeedAndSize), typeof(Rigidbody2D))]
 public class BallParameterManager : MonoBehaviour
@@ -13,24 +13,92 @@ public class BallParameterManager : MonoBehaviour
     private CircleCollider2D circleCollider;
     private BoxCollider2D boxCollider;
 
-    // ------------------- 可修改参数（Inspector中显示） -------------------
+    // ------------------- 私有字段（存储当前值） -------------------
     [Header("当前生命值（可直接修改）")]
-    [SerializeField] private int currentHealth;
+    [SerializeField] private int _currentHealth; // 私有字段，用于Inspector显示和存储
 
     [Header("最低攻击力（可直接修改）")]
-    [SerializeField] private int minDamage = 1;
+    [SerializeField] private int _minDamage = 1; // 私有字段，用于Inspector显示和存储
 
     [Header("小球大小（可直接修改，自动同步碰撞体）")]
-    [SerializeField] private float ballSize = 1f; // 大小系数（1=默认大小）
+    [SerializeField] private float _ballSize = 1f; // 私有字段，用于Inspector显示和存储
 
     // ------------------- 只读参数（实时获取，Inspector中显示） -------------------
     [Header("只读参数（实时更新）")]
     [SerializeField] private int maxHealth; // 最大生命值
-    [SerializeField] private float baseDamage; // 基础伤害
+    [SerializeField] private float baseDamage; // 基础伤害（速度系数）
     [SerializeField] private float currentRadius; // 当前碰撞体半径
     [SerializeField] private Vector3 currentScale; // 当前缩放
-    
 
+    // ------------------- 公开属性（支持外部脚本直接修改，自动同步） -------------------
+    /// <summary>
+    /// 当前生命值（外部可直接修改，自动同步到HealthSystem_New）
+    /// </summary>
+    public int CurrentHealth
+    {
+        get => _currentHealth; // 返回存储的值
+        set
+        {
+            // 1. 限制生命值范围
+            int clampedHealth = Mathf.Clamp(value, 0, maxHealth);
+
+            // 2. 同步到HealthSystem_New
+            if (healthSystem != null)
+            {
+                healthSystem.SetCurrentHealth(clampedHealth);
+                Debug.Log($"✅【外部修改】CurrentHealth被修改为{clampedHealth}，同步到HealthSystem_New");
+            }
+
+            // 3. 更新存储的值（同步Inspector显示）
+            _currentHealth = clampedHealth;
+        }
+    }
+
+    /// <summary>
+    /// 最低攻击力（外部可直接修改，自动同步到SpeedAndSize）
+    /// </summary>
+    public int MinDamage
+    {
+        get => _minDamage; // 返回存储的值
+        set
+        {
+            // 1. 限制最低攻击力范围（至少为1）
+            int clampedMinDamage = Mathf.Max(1, value);
+
+            // 2. 同步到SpeedAndSize
+            if (speedAndSize != null)
+            {
+                speedAndSize.minDamage = clampedMinDamage;
+                Debug.Log($"✅【外部修改】MinDamage被修改为{clampedMinDamage}，同步到SpeedAndSize");
+            }
+
+            // 3. 更新存储的值（同步Inspector显示）
+            _minDamage = clampedMinDamage;
+        }
+    }
+
+    /// <summary>
+    /// 小球大小（外部可直接修改，自动同步碰撞体和缩放）
+    /// </summary>
+    public float BallSize
+    {
+        get => _ballSize; // 返回存储的值
+        set
+        {
+            // 1. 限制大小范围（至少为0.1）
+            float clampedBallSize = Mathf.Max(0.1f, value);
+
+            // 2. 更新缩放
+            transform.localScale = Vector3.one * clampedBallSize;
+
+            // 3. 同步碰撞体半径
+            SyncColliderRadius();
+
+            // 4. 更新存储的值（同步Inspector显示）
+            _ballSize = clampedBallSize;
+            Debug.Log($"✅【外部修改】BallSize被修改为{clampedBallSize}，同步缩放和碰撞体");
+        }
+    }
 
     // ------------------- 初始化 -------------------
     private void Awake()
@@ -41,7 +109,7 @@ public class BallParameterManager : MonoBehaviour
         rb = GetComponent<Rigidbody2D>();
         circleCollider = GetComponent<CircleCollider2D>();
         boxCollider = GetComponent<BoxCollider2D>();
-        
+
         // 校验组件是否获取成功
         if (healthSystem == null)
         {
@@ -52,8 +120,36 @@ public class BallParameterManager : MonoBehaviour
             Debug.LogError($"❌【初始化失败】小球未挂载SpeedAndSize脚本！");
         }
 
-        // 初始化参数
-        UpdateParametersFromComponents();
+        // 初始化参数：从组件读取初始值
+        InitializeParameters();
+    }
+
+    /// <summary>
+    /// 初始化参数（仅在Awake时执行一次）
+    /// </summary>
+    private void InitializeParameters()
+    {
+        if (healthSystem != null)
+        {
+            // 从HealthSystem_New读取初始生命值和最大生命值
+            _currentHealth = healthSystem.GetCurrentHealth();
+            maxHealth = healthSystem.GetMaxHealth();
+            Debug.Log($"✅【初始化】从HealthSystem_New读取初始生命值：{_currentHealth}/{maxHealth}");
+        }
+
+        if (speedAndSize != null)
+        {
+            // 从SpeedAndSize读取初始最低攻击力和基础伤害
+            _minDamage = speedAndSize.minDamage;
+            baseDamage = speedAndSize.damageMultiplier;
+            Debug.Log($"✅【初始化】从SpeedAndSize读取初始最低攻击力：{_minDamage}，基础伤害：{baseDamage}");
+        }
+
+        // 初始化大小参数
+        _ballSize = Mathf.Max(0.1f, Mathf.Max(transform.localScale.x, transform.localScale.y));
+        currentScale = transform.localScale;
+        currentRadius = GetCurrentRadius();
+        Debug.Log($"✅【初始化】小球初始大小：{_ballSize}，半径：{currentRadius}");
     }
 
     // ------------------- 实时更新参数（每帧） -------------------
@@ -62,81 +158,27 @@ public class BallParameterManager : MonoBehaviour
         UpdateParametersFromComponents();
     }
 
-    // ------------------- 参数更新逻辑 -------------------
     /// <summary>
-    /// 更新所有参数（从组件中读取最新值，避免覆盖手动修改的currentHealth）
+    /// 从组件读取最新参数（自动同步到属性和Inspector）
     /// </summary>
     private void UpdateParametersFromComponents()
     {
-        // 1. 更新生命值（仅读取maxHealth，currentHealth由组件控制，避免覆盖手动修改）
-        maxHealth = healthSystem.GetMaxHealth();
-        // 注意：移除currentHealth的自动更新，避免覆盖手动修改
-         currentHealth = healthSystem.GetCurrentHealth();
-
-        // 2. 更新伤害参数
-        baseDamage = speedAndSize.damageMultiplier;
-
-        // 3. 更新大小参数（缩放和半径）
-        currentScale = transform.localScale;
-        currentRadius = GetCurrentRadius();
-    }
-
-    // ------------------- 参数修改逻辑 -------------------
-    /// <summary>
-    /// 修改当前生命值（外部可调用）
-    /// </summary>
-    /// <param name="newHealth">新的生命值</param>
-    public void SetCurrentHealth(int newHealth)
-    {
-        // 1. 限制生命值范围
-        int clampedHealth = Mathf.Clamp(newHealth, 0, maxHealth);
-
-        // 2. 同步到HealthSystem_New（核心：取消注释！）
         if (healthSystem != null)
         {
-            healthSystem.SetCurrentHealth(clampedHealth);
-            Debug.Log($"✅【生命值同步成功】BallParameterManager将currentHealth修改为{clampedHealth}，同步到HealthSystem_New");
-        }
-        else
-        {
-            Debug.LogError($"❌【生命值同步失败】healthSystem引用为null！");
+            // 实时同步生命值（组件变化时，自动更新属性和Inspector）
+            _currentHealth = healthSystem.GetCurrentHealth();
+            maxHealth = healthSystem.GetMaxHealth();
         }
 
-        // 3. 更新本地变量（用于Inspector显示）
-        currentHealth = clampedHealth;
-    }
-
-    /// <summary>
-    /// 修改最低攻击力（外部可调用）
-    /// </summary>
-    /// <param name="newMinDamage">新的最低攻击力</param>
-    public void SetMinDamage(int newMinDamage)
-    {
-        minDamage = Mathf.Max(1, newMinDamage);
         if (speedAndSize != null)
         {
-            speedAndSize.minDamage = minDamage;
-            Debug.Log($"✅【最低伤害同步成功】BallParameterManager将minDamage修改为{minDamage}，同步到SpeedAndSize");
+            // 实时同步基础伤害（速度系数）
+            baseDamage = speedAndSize.damageMultiplier;
         }
-        else
-        {
-            Debug.LogError($"❌【最低伤害同步失败】speedAndSize引用为null！");
-        }
-    }
 
-    /// <summary>
-    /// 修改小球大小（外部可调用，自动同步碰撞体和缩放）
-    /// </summary>
-    /// <param name="newSize">新的大小系数（1=默认大小）</param>
-    public void SetBallSize(float newSize)
-    {
-        ballSize = Mathf.Max(0.1f, newSize); // 限制最小大小为0.1
-
-        // 1. 更新缩放（基于默认大小1对应缩放1）
-        transform.localScale = Vector3.one * ballSize;
-
-        // 2. 更新碰撞体半径（基于缩放同步）
-        SyncColliderRadius();
+        // 实时同步大小参数
+        currentScale = transform.localScale;
+        currentRadius = GetCurrentRadius();
     }
 
     // ------------------- 辅助方法 -------------------
@@ -164,14 +206,12 @@ public class BallParameterManager : MonoBehaviour
         // 圆形碰撞体：根据缩放调整radius（保持实际半径与缩放匹配）
         if (circleCollider != null)
         {
-            // 假设默认缩放1时，radius为0.5（根据你的实际设置调整）
             float defaultRadius = 0.5f;
             circleCollider.radius = defaultRadius; // 保持基础radius不变，缩放由transform控制
         }
         // 方形碰撞体：根据缩放调整size（保持实际边长与缩放匹配）
         else if (boxCollider != null)
         {
-            // 假设默认缩放1时，size为1x1（根据你的实际设置调整）
             Vector2 defaultSize = Vector2.one;
             boxCollider.size = defaultSize; // 保持基础size不变，缩放由transform控制
         }
@@ -183,15 +223,15 @@ public class BallParameterManager : MonoBehaviour
     /// </summary>
     private void OnValidate()
     {
-        // 确保组件已获取
+        // 确保组件已获取（仅在编辑器模式下有效）
         if (healthSystem == null) healthSystem = GetComponent<HealthSystem_New>();
         if (speedAndSize == null) speedAndSize = GetComponent<SpeedAndSize>();
         if (circleCollider == null) circleCollider = GetComponent<CircleCollider2D>();
         if (boxCollider == null) boxCollider = GetComponent<BoxCollider2D>();
 
-        // 同步修改到组件（仅在Inspector修改时执行）
-        SetCurrentHealth(currentHealth);
-        SetMinDamage(minDamage);
-        SetBallSize(ballSize);
+        // 同步Inspector修改到组件（通过属性的setter自动触发同步）
+        CurrentHealth = _currentHealth; // 触发CurrentHealth的setter
+        MinDamage = _minDamage; // 触发MinDamage的setter
+        BallSize = _ballSize; // 触发BallSize的setter
     }
 }
