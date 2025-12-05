@@ -3,7 +3,7 @@ using UnityEngine;
 /// <summary>
 /// 碰撞扣血触发器：修复“同时勾选仅玩家/仅敌人时无伤害”的问题
 /// </summary>
-public class DamageTrigger : MonoBehaviour
+public class AcheWall : MonoBehaviour
 {
     [Header("扣血配置")]
     [SerializeField] private int damageAmount = 1;
