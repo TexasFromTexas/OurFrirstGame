@@ -1,8 +1,5 @@
 using UnityEngine;
 
-/// <summary>
-/// 小球参数管理脚本：自动同步 + 支持外部脚本直接修改
-/// </summary>
 [RequireComponent(typeof(HealthSystem_New), typeof(SpeedAndSize), typeof(Rigidbody2D))]
 public class BallParameterManager : MonoBehaviour
 {
@@ -65,10 +62,10 @@ public class BallParameterManager : MonoBehaviour
             // 1. 限制最低攻击力范围（至少为1）
             int clampedMinDamage = Mathf.Max(1, value);
 
-            // 2. 同步到SpeedAndSize
+            // 2. 同步到SpeedAndSize（使用 SpeedAndSize 的公开属性）
             if (speedAndSize != null)
             {
-                speedAndSize.minDamage = clampedMinDamage;
+                speedAndSize.MinDamage = clampedMinDamage;
                 Debug.Log($"✅【外部修改】MinDamage被修改为{clampedMinDamage}，同步到SpeedAndSize");
             }
 
@@ -139,10 +136,14 @@ public class BallParameterManager : MonoBehaviour
 
         if (speedAndSize != null)
         {
-            // 从SpeedAndSize读取初始最低攻击力和基础伤害
-            _minDamage = speedAndSize.minDamage;
-            baseDamage = speedAndSize.damageMultiplier;
+            // 从SpeedAndSize读取初始最低攻击力和基础伤害（使用公开属性）
+            _minDamage = speedAndSize.MinDamage;
+            baseDamage = speedAndSize.DamageMultiplier;
             Debug.Log($"✅【初始化】从SpeedAndSize读取初始最低攻击力：{_minDamage}，基础伤害：{baseDamage}");
+        }
+        else
+        {
+            baseDamage = 0f;
         }
 
         // 初始化大小参数
@@ -172,8 +173,8 @@ public class BallParameterManager : MonoBehaviour
 
         if (speedAndSize != null)
         {
-            // 实时同步基础伤害（速度系数）
-            baseDamage = speedAndSize.damageMultiplier;
+            // 改用 SpeedAndSize 公开属性
+            baseDamage = speedAndSize.DamageMultiplier;
         }
 
         // 实时同步大小参数

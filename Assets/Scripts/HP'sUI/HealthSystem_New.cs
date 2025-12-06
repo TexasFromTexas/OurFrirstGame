@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.UI;
 
 // 独立血量管理，无需修改原有脚本
 public class HealthSystem_New : MonoBehaviour
@@ -11,9 +10,6 @@ public class HealthSystem_New : MonoBehaviour
 
     [Header("血条UI绑定")]
     [SerializeField] private BloodBarUI_New bloodBar; // 绑定对应血条UI
-
-    [Header("伤害数字管理")]
-    [SerializeField] private DamageTextManager damageTextManager; // 伤害数字管理器引用
 
     private void Awake()
     {
@@ -35,14 +31,7 @@ public class HealthSystem_New : MonoBehaviour
         currentHealth = Mathf.Max(currentHealth, 0);
 
         // 调试日志（方便排查）
-        Debug.Log($"{(isPlayer ? "玩家" : "敌人")} [{gameObject.name}] 收到伤害：{damage}！");
         Debug.Log($"{(isPlayer ? "玩家" : "敌人")} [{gameObject.name}] 扣血！剩余血量：{currentHealth}/{maxHealth}");
-
-        // 显示伤害数字
-        if (damageTextManager != null)
-        {
-            damageTextManager.ShowDamage(damage, transform.position); // 传入伤害值和当前位置
-        }
 
         // 更新血条
         UpdateBloodBar();
@@ -63,6 +52,10 @@ public class HealthSystem_New : MonoBehaviour
         currentHealth = Mathf.Clamp(newHealth, 0, maxHealth);
         UpdateBloodBar(); // 更新血条UI
         Debug.Log($"{(isPlayer ? "玩家" : "敌人")} [{gameObject.name}] 生命值被设置为：{currentHealth}/{maxHealth}");
+        if (currentHealth == 0)
+        {
+            OnDeath();
+        }
     }
 
     /// <summary>
@@ -93,8 +86,10 @@ public class HealthSystem_New : MonoBehaviour
         }
         else
         {
-            GetComponent<Rigidbody2D>().velocity = Vector2.zero;
-            GetComponent<Collider2D>().enabled = false; // 禁用碰撞
+            var rb = GetComponent<Rigidbody2D>();
+            if (rb != null) rb.velocity = Vector2.zero;
+            var col = GetComponent<Collider2D>();
+            if (col != null) col.enabled = false; // 禁用碰撞
         }
     }
 

@@ -64,15 +64,15 @@ public class CardEffectManager : MonoBehaviour
             case CardData.CardEffect.IncreaseSpeed:
                 if (speedComp != null)
                 {
-                    // 根据 SpeedAndSize 的真实 API 调整，这里示例直接修改 damageMultiplier
-                    speedComp.damageMultiplier += cardData.effectValue;
+                    // 使用公开方法修改 speed multiplier
+                    speedComp.ModifyDamageMultiplier(cardData.effectValue);
                 }
                 break;
 
             case CardData.CardEffect.DecreaseSpeed:
                 if (speedComp != null)
                 {
-                    speedComp.damageMultiplier = Mathf.Max(0f, speedComp.damageMultiplier - cardData.effectValue);
+                    speedComp.ModifyDamageMultiplier(-cardData.effectValue);
                 }
                 break;
 

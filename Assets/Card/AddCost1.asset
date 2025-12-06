@@ -12,11 +12,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 15965fd8d2c972546a2491f6bf843fde, type: 3}
   m_Name: AddCost1
   m_EditorClassIdentifier: 
-  CardName: 
-  Description: 
+  CardName: "\u56DE\u8D39"
+  Description: "\u591F\u5417\uFF0C\u5B69\u5B50\uFF08+1\u8D39\u7528\uFF09"
   Cost: 0
-  cardType: 0
+  cardType: 1
   CardSprite: {fileID: 0}
-  effectType: 0
-  effectValue: 0
+  effectType: 7
+  effectValue: 1
   effectDuration: 0

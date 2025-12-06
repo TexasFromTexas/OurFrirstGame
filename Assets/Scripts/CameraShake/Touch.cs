@@ -5,20 +5,20 @@ using UnityEngine;
 
 public class Touch : MonoBehaviour
 {
-    private CameraShake cameraShake;
-    public float shakeTime = 0.2f;
-    public float shakeRange = 0.1f;
+	private CameraShake cameraShake;
+	public float shakeTime = 0.2f;
+	public float shakeRange = 0.1f;
 
-    void Start()
-    {
-        cameraShake = Camera.main.GetComponent<CameraShake>();
-    }
+	void Start()
+	{
+		cameraShake = Camera.main.GetComponent<CameraShake>();
+	}
 
-    private void OnCollisionEnter2D(Collision2D other)
-    {
-        if (other.gameObject.CompareTag("Player")|| other.gameObject.CompareTag("Enemy"))
-        {
-            cameraShake.Trigger(shakeRange,shakeTime);
-        }
-    }
+	private void OnCollisionEnter2D(Collision2D other)
+	{
+		if (other.gameObject.CompareTag("Player"))
+		{
+			cameraShake.Trigger(shakeRange, shakeTime);
+		}
+	}
 }
