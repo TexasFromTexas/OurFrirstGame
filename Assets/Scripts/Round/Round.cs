@@ -1,7 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-
+using static BossSpawner;
 public class Round : MonoBehaviour
 {
 	public enum TurnState
@@ -15,6 +15,10 @@ public class Round : MonoBehaviour
 	
 	public SlingshotBall ballScript; // 控制小球的脚本
 	public List<EnemyAI> enemies = new List<EnemyAI>(); // 控制敌人的脚本
+	private bool bossSpawned = false;
+
+	[Header("Boss生成器")]
+	public BossSpawner bossSpawner;
 
 	void Start()
 	{
@@ -45,6 +49,16 @@ public class Round : MonoBehaviour
 		}
 	}
 
+	public void RegisterEnemy(EnemyAI boss)
+	{
+		if (boss != null && !enemies.Contains(boss))
+		{
+			enemies.Add(boss);
+			Debug.Log("[Round] Boss 已加入敌人回合列表");
+		}
+	}
+
+
 	// 启动 BallRound
 	void StartBallRound()
 	{
@@ -71,10 +85,28 @@ public class Round : MonoBehaviour
 		// 如果没有敌人了，可以直接 GameOver 或进入下一关
 		if (enemies.Count == 0)
 		{
+			if (!bossSpawned && bossSpawner != null) {
+				bossSpawned = true;
+
+				//播放动画---还没做
+
+				enemies.RemoveAll(e => e == null);
+			}
+			else
+			{
+				// 2）Boss 也已经死了 → 通关
+				Debug.Log("[Turn] 所有敌人（包括 Boss）都死了，通关！");
+				currentTurnState = TurnState.GameOver;
+				yield break;
+			}
+			
+		}
+		// 再检查一次，防止生成 Boss 失败之类
+		if (enemies.Count == 0)
+		{
 			currentTurnState = TurnState.GameOver;
 			yield break;
 		}
-
 		// 逐个敌人轮着走
 		foreach (var enemy in enemies)
 		{

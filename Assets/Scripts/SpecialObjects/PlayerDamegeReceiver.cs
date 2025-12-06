@@ -6,6 +6,8 @@ public class PlayerDamageReceiver : MonoBehaviour
     private HealthSystem_New health; // 自身血量组件
     private Round Round; // 回合管理器（判断敌人回合）
 
+    public AudioSource sfx;//音乐播放器
+    public AudioClip hitSound; // 被击音效
     private void Awake()
     {
         // 获取组件（无需修改原有脚本，直接查找）
@@ -24,6 +26,8 @@ public class PlayerDamageReceiver : MonoBehaviour
     {
         // 日志2：碰撞触发总开关（确认碰撞是否检测到）
         Debug.Log($"【玩家扣血监听】碰撞触发！撞到了：{collision.gameObject.name} | 对方标签：{collision.gameObject.tag}");
+
+        
 
         // 条件1：有血量组件+回合管理器
         if (health == null)
