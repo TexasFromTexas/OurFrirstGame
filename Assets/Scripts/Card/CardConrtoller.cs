@@ -28,11 +28,11 @@ public class Card : MonoBehaviour, IPointerClickHandler, IBeginDragHandler, IDra
         // 根据卡牌类型设置数值和图标
         switch (data.cardType)
         {
-            case CardData.CardType.Bodytype:
-                Type.color = Color.red; // 体型红色
+            case CardData.CardType.Buff:
+                Type.color = Color.red; // 改变数值类型牌红色
                 break;
-            case CardData.CardType.Speed:
-                Type.color = Color.blue; // 速度蓝色
+            case CardData.CardType.Cost:
+                Type.color = Color.blue; // 费用相关蓝色
                 break;
             case CardData.CardType.Item:
                 Type.color = Color.yellow; // 道具黄色
@@ -55,8 +55,10 @@ public class Card : MonoBehaviour, IPointerClickHandler, IBeginDragHandler, IDra
                 return $"体积增大 {data.effectValue}";
             case CardEffect.ShrinkBodytype:
                 return $"体积缩小 {data.effectValue}";
-            case CardEffect.MakeInvincible:
-                return $"无敌 {data.effectDuration} 秒";
+            case CardEffect.AddCurrentCost:
+                return $"增加 {data.effectValue} 点当前费用";
+            case CardEffect.IncreaseMaxCost:
+                return $"增加 {data.effectValue} 点最大费用";
             default:
                 return "无特殊效果";
         }

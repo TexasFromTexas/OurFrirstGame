@@ -1,5 +1,6 @@
 using System.Collections;
 using UnityEngine;
+using static CardData;
 
 public class CardEffectManager : MonoBehaviour
 {
@@ -75,14 +76,56 @@ public class CardEffectManager : MonoBehaviour
                 }
                 break;
 
-            case CardData.CardEffect.MakeInvincible:
-                StartCoroutine(TemporaryInvincible(player, cardData.effectDuration));
+            case CardEffect.IncreaseMaxCost:
+                IncreaseMaxCost((int)cardData.effectValue);
+                break;
+
+            case CardData.CardEffect.AddCurrentCost:
+                AddCurrentCost((int)cardData.effectValue);
+                break;
+            case CardData.CardEffect.DrawCards:
+                ExecuteDrawCardEffect((int)cardData.effectValue);
                 break;
 
             case CardData.CardEffect.None:
             default:
                 Debug.Log($"未处理的卡牌效果：{cardData.effectType}");
                 break;
+        }
+    }
+    private void AddCurrentCost(int amount)
+    {
+        GameManager.Instance.currentCost += amount;
+        // 确保不超过最大费用
+        GameManager.Instance.currentCost = Mathf.Min(GameManager.Instance.currentCost, GameManager.Instance.maxCost);
+        Debug.Log($"当前费用增加{amount}，剩余：{GameManager.Instance.currentCost}");
+        GameManager.Instance.UpdateCostUI(); // 刷新费用UI
+    }
+    private void IncreaseMaxCost(int amount)
+    {
+        GameManager.Instance.maxCost += amount;
+        // 同步更新当前费用（可选：最大费用增加时，当前费用也同步增加）
+        GameManager.Instance.currentCost += amount;
+        Debug.Log($"最大费用永久增加{amount}，当前最大：{GameManager.Instance.maxCost}");
+        GameManager.Instance.UpdateCostUI(); // 刷新费用UI
+    }
+    public void ExecuteDrawCardEffect(int count)
+    {
+        for (int i = 0; i < count; i++)
+        {
+            Card drawnCard = Deck.Instance.DrawCard();
+            if (drawnCard != null)
+            {
+                // 加入手牌容器
+                drawnCard.transform.SetParent(GameManager.Instance.HandPanel);
+                drawnCard.transform.localScale = Vector3.one;
+                drawnCard.transform.localPosition = Vector3.zero;
+            }
+            else
+            {
+                Debug.Log("抽牌数量超过剩余牌数，停止抽卡");
+                break;
+            }
         }
     }
 

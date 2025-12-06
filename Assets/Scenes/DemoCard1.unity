@@ -1725,6 +1725,8 @@ MonoBehaviour:
   CardPrefab: {fileID: 2539988412317159507, guid: 8d5f6486bddb895408b3d09738e9eb5a, type: 3}
   handTransform: {fileID: 1029662839}
   defaultDrawCount: 5
+  maxCost: 3
+  currentCost: 0
 --- !u!4 &1779479927
 Transform:
   m_ObjectHideFlags: 0
@@ -1778,7 +1780,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 91.09, y: -50}
+  m_AnchoredPosition: {x: 224.96, y: -50}
   m_SizeDelta: {x: 450, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1909048698

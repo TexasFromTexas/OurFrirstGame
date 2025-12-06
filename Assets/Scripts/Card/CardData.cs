@@ -13,10 +13,6 @@ public class CardData : ScriptableObject
     public CardType cardType;
     // 卡牌精灵（显示用）
     public Sprite CardSprite;
-    // 体型数值
-    public int Bodytype;
-    // 速度数值
-    public int Speed;
     // 效果类型（枚举）
     public CardEffect effectType; 
     // 效果数值（如+50生命值、-20速度）
@@ -26,8 +22,8 @@ public class CardData : ScriptableObject
 
     public enum CardType
     {
-        Bodytype,
-        Speed,
+        Buff,
+        Cost,
         Item//道具
     }
     public enum CardEffect
@@ -37,8 +33,10 @@ public class CardData : ScriptableObject
         ReduceHealth,       // 减少生命值
         IncreaseSpeed,      // 增加移动速度
         DecreaseSpeed,      // 降低移动速度
-        EnlargeBodytype,       // 增大体积
-        ShrinkBodytype,        // 缩小体积
-        MakeInvincible      // 获得无敌状态
+        EnlargeBodytype,    // 增大体积
+        ShrinkBodytype,     // 缩小体积
+        AddCurrentCost,     // 增加费用
+        IncreaseMaxCost,    // 增加最大费用
+        DrawCards           // 抽取卡牌  
     }
 }

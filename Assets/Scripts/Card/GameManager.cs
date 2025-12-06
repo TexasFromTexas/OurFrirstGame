@@ -11,6 +11,7 @@ public class GameManager : MonoBehaviour
     public Hand Hand;
     public Pile DiscardPile;
     public GameObject Player;
+    public Transform HandPanel;
 
     [Header("预制体引用")]
     public GameObject CardPrefab;
@@ -67,7 +68,7 @@ public class GameManager : MonoBehaviour
     }
 
     // 更新费用UI显示（需结合你的UI逻辑实现）
-    private void UpdateCostUI()
+    public void UpdateCostUI()
     {
         // 调用CostUIManager更新UI
         if (CostUIManager.Instance != null)
@@ -76,7 +77,7 @@ public class GameManager : MonoBehaviour
         }
         else
         {
-            Debug.LogWarning("未找到CostUIManager，请确保场景中已添加并挂载脚本");
+           // Debug.LogWarning("未找到CostUIManager，请确保场景中已添加并挂载脚本");
         }
     }
 

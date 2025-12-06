@@ -3,6 +3,7 @@ using UnityEngine;
 
 public class Deck : MonoBehaviour
 {
+    public static Deck Instance;
     // 初始卡牌列表（在Inspector中赋值）
     public List<CardData> initialCards;
     // 实际牌库（存储卡牌数据，洗牌用）
