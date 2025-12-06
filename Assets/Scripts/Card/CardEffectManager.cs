@@ -20,16 +20,16 @@ public class CardEffectManager : MonoBehaviour
             return;
         }
 
-        var playerBall = GameManager.Instance?.PlayerBall;
-        if (playerBall == null)
+        var player = GameManager.Instance?.Player;
+        if (player == null)
         {
-            Debug.LogError("ExecuteEffect: 未找到 PlayerBall（GameManager.Instance.PlayerBall 为 null）");
+            Debug.LogError("ExecuteEffect: 未找到 Player（GameManager.Instance.PlayerBall 为 null）");
             return;
         }
 
-        var bpm = playerBall.GetComponent<BallParameterManager>();
-        var health = playerBall.GetComponent<HealthSystem_New>();
-        var speedComp = playerBall.GetComponent<SpeedAndSize>();
+        var bpm = player.GetComponent<BallParameterManager>();
+        var health = player.GetComponent<HealthSystem_New>();
+        var speedComp = player.GetComponent<SpeedAndSize>();
 
         switch (cardData.effectType)
         {
@@ -46,7 +46,7 @@ public class CardEffectManager : MonoBehaviour
             case CardData.CardEffect.EnlargeBodytype:
                 {
                     // 将 effectValue 视为大小增量（与 transform.localScale 单位一致）
-                    float cur = playerBall.transform.localScale.x;
+                    float cur = player.transform.localScale.x;
                     float target = Mathf.Max(0.1f, cur + cardData.effectValue);
                     if (bpm != null) bpm.BallSize = target;
                 }
@@ -54,7 +54,7 @@ public class CardEffectManager : MonoBehaviour
 
             case CardData.CardEffect.ShrinkBodytype:
                 {
-                    float cur = playerBall.transform.localScale.x;
+                    float cur = player.transform.localScale.x;
                     float target = Mathf.Max(0.1f, cur - cardData.effectValue);
                     if (bpm != null) bpm.BallSize = target;
                 }
@@ -76,7 +76,7 @@ public class CardEffectManager : MonoBehaviour
                 break;
 
             case CardData.CardEffect.MakeInvincible:
-                StartCoroutine(TemporaryInvincible(playerBall, cardData.effectDuration));
+                StartCoroutine(TemporaryInvincible(player, cardData.effectDuration));
                 break;
 
             case CardData.CardEffect.None:

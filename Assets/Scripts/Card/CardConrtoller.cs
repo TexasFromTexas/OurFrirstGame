@@ -67,6 +67,20 @@ public class Card : MonoBehaviour, IPointerClickHandler, IBeginDragHandler, IDra
     {
         if (!_isDraggable) return;
         Debug.Log($"使用卡牌：{_cardData.CardName}");
+        // 替换原代码
+        if (CardEffectManager.Instance == null)
+        {
+            Debug.LogError("CardEffectManager 未初始化！请在场景中添加该物体并挂载脚本");
+            return;
+        }
+        if (_cardData == null)
+        {
+            Debug.LogError("卡牌数据 _cardData 为空！请检查 Init 方法是否正确赋值");
+            return;
+        }
+
+        // 安全调用
+        CardEffectManager.Instance.ExecuteEffect(_cardData);
         // 调用卡牌效果（后续扩展）
         CardEffectManager.Instance.ExecuteEffect(_cardData);
         // 移除手牌，根据类型放入弃牌堆
