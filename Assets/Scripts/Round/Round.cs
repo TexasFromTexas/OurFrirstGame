@@ -12,7 +12,7 @@ public class Round : MonoBehaviour
 	}
 	public float BallTime = 1f;
 	public TurnState currentTurnState = TurnState.BallRound;
-
+	
 	public SlingshotBall ballScript; // 控制小球的脚本
 	public List<EnemyAI> enemies = new List<EnemyAI>(); // 控制敌人的脚本
 	private bool bossSpawned = false;
