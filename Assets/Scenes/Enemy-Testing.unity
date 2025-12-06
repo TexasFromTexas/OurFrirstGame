@@ -269,10 +269,42 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 92eb544e40f66904dbd1970d68d25730, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  time: 10
+  BallTime: 1
   currentTurnState: 0
   ballScript: {fileID: 1015921890}
   enemies: []
+  bossSpawner: {fileID: 0}
+--- !u!1 &245901105
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 245901106}
+  m_Layer: 0
+  m_Name: Bgm
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &245901106
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 245901105}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 1828.9893, y: 1011.3799, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &255507497
 GameObject:
   m_ObjectHideFlags: 0
@@ -291,6 +323,7 @@ GameObject:
   - component: {fileID: 255507498}
   - component: {fileID: 255507509}
   - component: {fileID: 255507506}
+  - component: {fileID: 255507510}
   m_Layer: 0
   m_Name: Boss
   m_TagString: Enemy
@@ -310,8 +343,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 26f04a7733112d74481d92b8b6df3c2d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  shakeTime: 0.2
-  shakeRange: 0.1
 --- !u!114 &255507499
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -324,10 +355,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 62ac79c4bce4fb9488e13be711df6f06, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  normalColor: {r: 0, g: 1, b: 0, a: 1}
-  fleeColor: {r: 0, g: 0, b: 1, a: 1}
-  dashColor: {r: 1, g: 0, b: 0, a: 1}
-  chaseColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
 --- !u!114 &255507500
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -522,7 +549,25 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   maxHealth: 5
   isPlayer: 0
+  currentHealth: 0
   bloodBar: {fileID: 1105063298}
+  damageTextManager: {fileID: 0}
+--- !u!114 &255507510
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 255507497}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 15869fd214665594f902ca01493574ad, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  normalColor: {r: 0, g: 1, b: 0, a: 1}
+  fleeColor: {r: 0, g: 0, b: 1, a: 1}
+  dashColor: {r: 1, g: 0, b: 0, a: 1}
+  chaseColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
 --- !u!1 &322549205
 GameObject:
   m_ObjectHideFlags: 0
@@ -1268,6 +1313,7 @@ GameObject:
   - component: {fileID: 620155423}
   - component: {fileID: 620155422}
   - component: {fileID: 620155421}
+  - component: {fileID: 620155429}
   m_Layer: 0
   m_Name: Grunt
   m_TagString: Enemy
@@ -1287,8 +1333,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 26f04a7733112d74481d92b8b6df3c2d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  shakeTime: 0.2
-  shakeRange: 0.1
 --- !u!114 &620155422
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1301,10 +1345,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 62ac79c4bce4fb9488e13be711df6f06, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  normalColor: {r: 0, g: 1, b: 0, a: 1}
-  fleeColor: {r: 0, g: 0, b: 1, a: 1}
-  dashColor: {r: 1, g: 0, b: 0, a: 1}
-  chaseColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
 --- !u!114 &620155423
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1469,6 +1509,22 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &620155429
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 620155420}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 15869fd214665594f902ca01493574ad, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  normalColor: {r: 0, g: 1, b: 0, a: 1}
+  fleeColor: {r: 0, g: 0, b: 1, a: 1}
+  dashColor: {r: 1, g: 0, b: 0, a: 1}
+  chaseColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
 --- !u!1 &657912021
 GameObject:
   m_ObjectHideFlags: 0
@@ -1517,10 +1573,10 @@ GameObject:
   - component: {fileID: 1015921884}
   - component: {fileID: 1015921887}
   - component: {fileID: 1015921889}
-  - component: {fileID: 1015921888}
   - component: {fileID: 1015921890}
   - component: {fileID: 1015921895}
   - component: {fileID: 1015921891}
+  - component: {fileID: 1015921896}
   m_Layer: 0
   m_Name: Player
   m_TagString: Player
@@ -1622,18 +1678,6 @@ Rigidbody2D:
   m_SleepingMode: 1
   m_CollisionDetection: 0
   m_Constraints: 4
---- !u!114 &1015921888
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1015921883}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8bc246e4033df164b9b0a104da626938, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!58 &1015921889
 CircleCollider2D:
   m_ObjectHideFlags: 0
@@ -1694,6 +1738,7 @@ MonoBehaviour:
   trajectoryWidth: 0.04
   recordInterval: 0.02
   minMoveDistance: 0.01
+  currentLaunchSpeed: 0
   rb: {fileID: 1015921887}
   isStop: 0
 --- !u!114 &1015921891
@@ -1708,6 +1753,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: efa44e293f4e395479758401903a2971, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  sfx: {fileID: 0}
+  hitSound: {fileID: 0}
 --- !u!114 &1015921895
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1722,7 +1769,29 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   maxHealth: 5
   isPlayer: 1
+  currentHealth: 0
   bloodBar: {fileID: 1181897809}
+  damageTextManager: {fileID: 0}
+--- !u!114 &1015921896
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1015921883}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c48ef3ef149c4c64b9e8c984d36ea0c1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  damageMultiplier: 0.5
+  baseDamage: 1
+  minDamage: 1
+  radiusDamageMultiplier: 0.5
+  debugMode: 0
+  debugRadius: 1
+  damagePlayerOnly: 0
+  damageEnemyOnly: 0
 --- !u!1 &1105063295
 GameObject:
   m_ObjectHideFlags: 0
@@ -1996,6 +2065,7 @@ GameObject:
   - component: {fileID: 1181897807}
   - component: {fileID: 1181897808}
   - component: {fileID: 1181897809}
+  - component: {fileID: 1181897810}
   m_Layer: 5
   m_Name: Player
   m_TagString: Untagged
@@ -2089,6 +2159,21 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   bloodSlider: {fileID: 1181897808}
+--- !u!114 &1181897810
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1181897806}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 75db04496ba5f744d9785e1d6b4991ba, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  target: {fileID: 1015921885}
+  offset: {x: 0, y: 0.5, z: 0}
+  autoSetCanvasMode: 1
 --- !u!1 &1206906557
 GameObject:
   m_ObjectHideFlags: 0
@@ -2175,7 +2260,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Color: {r: 0, g: 0, b: 0, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -2252,6 +2337,7 @@ GameObject:
   - component: {fileID: 1437237841}
   - component: {fileID: 1437237840}
   - component: {fileID: 1437237843}
+  - component: {fileID: 1437237845}
   m_Layer: 0
   m_Name: Assassin
   m_TagString: Enemy
@@ -2365,10 +2451,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 62ac79c4bce4fb9488e13be711df6f06, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  normalColor: {r: 0, g: 1, b: 0, a: 1}
-  fleeColor: {r: 0, g: 0, b: 1, a: 1}
-  dashColor: {r: 1, g: 0, b: 0, a: 1}
-  chaseColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
 --- !u!114 &1437237841
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2435,8 +2517,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 26f04a7733112d74481d92b8b6df3c2d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  shakeTime: 0.2
-  shakeRange: 0.1
 --- !u!114 &1437237844
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2453,6 +2533,22 @@ MonoBehaviour:
   isElasticCollision: 1
   restitution: 1
   rb: {fileID: 1437237839}
+--- !u!114 &1437237845
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1437237835}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 15869fd214665594f902ca01493574ad, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  normalColor: {r: 0, g: 1, b: 0, a: 1}
+  fleeColor: {r: 0, g: 0, b: 1, a: 1}
+  dashColor: {r: 1, g: 0, b: 0, a: 1}
+  chaseColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
 --- !u!1 &1481084342
 GameObject:
   m_ObjectHideFlags: 0
@@ -2612,6 +2708,7 @@ GameObject:
   - component: {fileID: 2039606831}
   - component: {fileID: 2039606830}
   - component: {fileID: 2039606829}
+  - component: {fileID: 2039606837}
   m_Layer: 0
   m_Name: Brute
   m_TagString: Enemy
@@ -2631,8 +2728,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 26f04a7733112d74481d92b8b6df3c2d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  shakeTime: 0.2
-  shakeRange: 0.1
 --- !u!114 &2039606830
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2645,10 +2740,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 62ac79c4bce4fb9488e13be711df6f06, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  normalColor: {r: 0, g: 1, b: 0, a: 1}
-  fleeColor: {r: 0, g: 0, b: 1, a: 1}
-  dashColor: {r: 1, g: 0, b: 0, a: 1}
-  chaseColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
 --- !u!114 &2039606831
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2813,6 +2904,22 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2039606837
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2039606828}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 15869fd214665594f902ca01493574ad, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  normalColor: {r: 0, g: 1, b: 0, a: 1}
+  fleeColor: {r: 0, g: 0, b: 1, a: 1}
+  dashColor: {r: 1, g: 0, b: 0, a: 1}
+  chaseColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
 --- !u!1 &2046787323
 GameObject:
   m_ObjectHideFlags: 0
@@ -2974,7 +3081,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Color: {r: 1, g: 0, b: 0, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -3016,3 +3123,4 @@ SceneRoots:
   - {fileID: 191282079}
   - {fileID: 60880512}
   - {fileID: 1481084345}
+  - {fileID: 245901106}

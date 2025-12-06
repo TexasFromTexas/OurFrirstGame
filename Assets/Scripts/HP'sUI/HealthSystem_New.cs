@@ -44,6 +44,21 @@ public class HealthSystem_New : MonoBehaviour
     }
 
     /// <summary>
+    /// 设置当前生命值（供外部修改）
+    /// </summary>
+    /// <param name="newHealth">新的生命值</param>
+    public void SetCurrentHealth(int newHealth)
+    {
+        currentHealth = Mathf.Clamp(newHealth, 0, maxHealth);
+        UpdateBloodBar(); // 更新血条UI
+        Debug.Log($"{(isPlayer ? "玩家" : "敌人")} [{gameObject.name}] 生命值被设置为：{currentHealth}/{maxHealth}");
+        if (currentHealth == 0)
+        {
+            OnDeath();
+        }
+    }
+
+    /// <summary>
     /// 更新血条UI
     /// </summary>
     private void UpdateBloodBar()
@@ -71,8 +86,10 @@ public class HealthSystem_New : MonoBehaviour
         }
         else
         {
-            GetComponent<Rigidbody2D>().velocity = Vector2.zero;
-            GetComponent<Collider2D>().enabled = false; // 禁用碰撞
+            var rb = GetComponent<Rigidbody2D>();
+            if (rb != null) rb.velocity = Vector2.zero;
+            var col = GetComponent<Collider2D>();
+            if (col != null) col.enabled = false; // 禁用碰撞
         }
     }
 
