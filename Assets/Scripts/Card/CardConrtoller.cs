@@ -79,13 +79,24 @@ public class Card : MonoBehaviour, IPointerClickHandler, IBeginDragHandler, IDra
             return;
         }
 
-        // 安全调用
-        CardEffectManager.Instance.ExecuteEffect(_cardData);
-        // 调用卡牌效果（后续扩展）
-        CardEffectManager.Instance.ExecuteEffect(_cardData);
-        // 移除手牌，根据类型放入弃牌堆
+        if (GameManager.Instance.SpendCost(_cardData.Cost))
+        {
+            // 费用足够：执行效果
+            Debug.Log($"使用卡牌：{_cardData.CardName}（消耗{_cardData.Cost}费用）");
+            CardEffectManager.Instance.ExecuteEffect(_cardData);
+
+            // 后续逻辑：移至弃牌堆等
             GameManager.Instance.DiscardPile.AddCard(this);
-        Destroy(gameObject); // 先销毁UI实例，数据保留在堆中
+            Destroy(gameObject);
+        }
+        else
+        {
+            // 费用不足：可添加提示（如UI闪烁、音效等）
+            Debug.Log("费用不足，无法使用该卡牌");
+            // 示例：播放错误提示
+            // UIManager.Instance.ShowNotEnoughManaTip();
+        }
+
     }
 
     // 开始拖拽
