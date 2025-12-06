@@ -9,6 +9,7 @@ public class GameManager : MonoBehaviour
     public Deck Deck;
     public Hand Hand;
     public Pile DiscardPile;
+    public GameObject PlayerBall;
 
     [Header("预制体引用")]
     public GameObject CardPrefab;

@@ -9,19 +9,36 @@ public class CardData : ScriptableObject
     public string Description;
     // 法力消耗
     public int Cost;
-    // 卡牌类型（攻击/技能/能力/消耗）
+    // 卡牌类型
     public CardType cardType;
     // 卡牌精灵（显示用）
     public Sprite CardSprite;
     // 体型数值
     public int Bodytype;
-    // 硬度数值
-    public int Hardness;
+    // 速度数值
+    public int Speed;
+    // 效果类型（枚举）
+    public CardEffect effectType; 
+    // 效果数值（如+50生命值、-20速度）
+    public float effectValue; 
+    // 效果持续时间（如无敌持续3秒，0表示永久）
+    public float effectDuration; 
 
     public enum CardType
     {
         Bodytype,
-        Hardness,
+        Speed,
         Item//道具
+    }
+    public enum CardEffect
+    {
+        None,               // 无效果（默认）
+        AddHealth,          // 增加生命值
+        ReduceHealth,       // 减少生命值
+        IncreaseSpeed,      // 增加移动速度
+        DecreaseSpeed,      // 降低移动速度
+        EnlargeBodytype,       // 增大体积
+        ShrinkBodytype,        // 缩小体积
+        MakeInvincible      // 获得无敌状态
     }
 }
