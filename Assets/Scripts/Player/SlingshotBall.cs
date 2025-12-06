@@ -113,7 +113,7 @@ public class SlingshotBall : MonoBehaviour
     {
         // 【轨迹功能】实时记录轨迹（含碰撞反弹）
         UpdateTrajectoryRecord();
-
+        
         // 拖拽发射逻辑（保留原有，仅重置碰撞状态）
         if (Input.GetMouseButtonDown(0) && !isDragging)
         {
@@ -186,6 +186,11 @@ public class SlingshotBall : MonoBehaviour
         else
         {
             isStop = false;
+        }
+        
+        if (isStop)
+        {
+            return;
         }
     }
 
