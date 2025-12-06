@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 
 public class SlingshotBall : MonoBehaviour
 {
@@ -29,7 +30,7 @@ public class SlingshotBall : MonoBehaviour
     [SerializeField] private float minMoveDistance = 0.01f; // 最小移动距离（避免重复记录同位置）
 
     // 原有变量
-    public float currentLaunchSpeed;
+    private float currentLaunchSpeed;
     private Vector2 collisionSelfVelBefore, collisionOtherVelBefore;
     private Vector2 collisionSelfVelAfter, collisionOtherVelAfter;
     private bool hasCollided;
@@ -39,6 +40,8 @@ public class SlingshotBall : MonoBehaviour
     private Camera mainCamera;
     private LineRenderer guideLine;
     public bool isStop;
+    private bool isClicked;
+    private bool hasClicked;
 
     // 【轨迹功能】轨迹核心变量
     private LineRenderer trajectoryLine; // 轨迹渲染器
@@ -62,6 +65,9 @@ public class SlingshotBall : MonoBehaviour
         rb.angularDrag = 0f;
         rb.interpolation = RigidbodyInterpolation2D.None; // 关闭插值，提升精度
         rb.collisionDetectionMode = CollisionDetectionMode2D.Continuous; // 防穿透
+        
+        isClicked =  false;
+        hasClicked = false;
 
         // 【轨迹功能】初始化轨迹线
         InitTrajectory();
@@ -111,6 +117,12 @@ public class SlingshotBall : MonoBehaviour
 
     private void Update()
     {
+        if (Input.GetMouseButtonDown(0) && !hasClicked)
+        {
+            isClicked = true;
+            hasClicked = true;
+        }
+        
         // 【轨迹功能】实时记录轨迹（含碰撞反弹）
         UpdateTrajectoryRecord();
 
@@ -179,13 +191,19 @@ public class SlingshotBall : MonoBehaviour
             guideLine.enabled = false;
         }
 
-        if (Input.GetMouseButtonUp(0))
+        if (Input.GetMouseButtonUp(0)&&isClicked)
         {
             isStop = true;
         }
         else
         {
             isStop = false;
+        }
+
+        if (isStop)
+        {
+            if (Input.GetMouseButtonDown(0))
+                return;
         }
     }
 
