@@ -18,4 +18,7 @@ MonoBehaviour:
   cardType: 0
   CardSprite: {fileID: 21300000, guid: 0be0ba6ab4b2f2448bf37040f7e030be, type: 3}
   Bodytype: 1
-  Hardness: 0
+  Speed: 0
+  effectType: 5
+  effectValue: 1
+  effectDuration: 0

@@ -1631,15 +1631,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 1015921883}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f766bf76d48617b4caae45add0638212, type: 3}
+  m_Script: {fileID: 11500000, guid: 8bc246e4033df164b9b0a104da626938, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  normalScale: 1
-  bigScale: 1.6
-  smallScale: 0.6
-  normalColor: {r: 0.02641511, g: 0.025700534, b: 0.025468152, a: 1}
-  bigColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
-  smallColor: {r: 0, g: 1, b: 1, a: 1}
 --- !u!58 &1015921889
 CircleCollider2D:
   m_ObjectHideFlags: 0

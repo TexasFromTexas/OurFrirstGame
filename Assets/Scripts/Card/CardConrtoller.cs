@@ -2,6 +2,7 @@ using TMPro; // 推荐用TextMeshPro，需导入包
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
+using static CardData;
 using static UnityEditor.Progress;
 
 public class Card : MonoBehaviour, IPointerClickHandler, IBeginDragHandler, IDragHandler, IEndDragHandler
@@ -30,12 +31,34 @@ public class Card : MonoBehaviour, IPointerClickHandler, IBeginDragHandler, IDra
             case CardData.CardType.Bodytype:
                 Type.color = Color.red; // 体型红色
                 break;
-            case CardData.CardType.Hardness:
-                Type.color = Color.blue; // 硬度蓝色
+            case CardData.CardType.Speed:
+                Type.color = Color.blue; // 速度蓝色
                 break;
             case CardData.CardType.Item:
                 Type.color = Color.yellow; // 道具黄色
                 break;
+        }
+    }
+    private string GetEffectDescription(CardData data)
+    {
+        switch (data.effectType)
+        {
+            case CardEffect.AddHealth:
+                return $"恢复 {data.effectValue} 生命值";
+            case CardEffect.ReduceHealth:
+                return $"受到 {data.effectValue} 伤害";
+            case CardEffect.IncreaseSpeed:
+                return $"速度提升 {data.effectValue}";
+            case CardEffect.DecreaseSpeed:
+                return $"速度降低 {data.effectValue}";
+            case CardEffect.EnlargeBodytype:
+                return $"体积增大 {data.effectValue}";
+            case CardEffect.ShrinkBodytype:
+                return $"体积缩小 {data.effectValue}";
+            case CardEffect.MakeInvincible:
+                return $"无敌 {data.effectDuration} 秒";
+            default:
+                return "无特殊效果";
         }
     }
 
@@ -44,11 +67,36 @@ public class Card : MonoBehaviour, IPointerClickHandler, IBeginDragHandler, IDra
     {
         if (!_isDraggable) return;
         Debug.Log($"使用卡牌：{_cardData.CardName}");
-        // 调用卡牌效果（后续扩展）
-        CardEffectManager.Instance.ExecuteEffect(_cardData);
-        // 移除手牌，根据类型放入弃牌堆
+        // 替换原代码
+        if (CardEffectManager.Instance == null)
+        {
+            Debug.LogError("CardEffectManager 未初始化！请在场景中添加该物体并挂载脚本");
+            return;
+        }
+        if (_cardData == null)
+        {
+            Debug.LogError("卡牌数据 _cardData 为空！请检查 Init 方法是否正确赋值");
+            return;
+        }
+
+        if (GameManager.Instance.SpendCost(_cardData.Cost))
+        {
+            // 费用足够：执行效果
+            Debug.Log($"使用卡牌：{_cardData.CardName}（消耗{_cardData.Cost}费用）");
+            CardEffectManager.Instance.ExecuteEffect(_cardData);
+
+            // 后续逻辑：移至弃牌堆等
             GameManager.Instance.DiscardPile.AddCard(this);
-        Destroy(gameObject); // 先销毁UI实例，数据保留在堆中
+            Destroy(gameObject);
+        }
+        else
+        {
+            // 费用不足：可添加提示（如UI闪烁、音效等）
+            Debug.Log("费用不足，无法使用该卡牌");
+            // 示例：播放错误提示
+            // UIManager.Instance.ShowNotEnoughManaTip();
+        }
+
     }
 
     // 开始拖拽

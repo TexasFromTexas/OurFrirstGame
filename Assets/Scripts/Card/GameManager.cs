@@ -1,4 +1,5 @@
 using UnityEngine;
+using static UnityEditor.PlayerSettings;
 
 public class GameManager : MonoBehaviour
 {
@@ -9,6 +10,7 @@ public class GameManager : MonoBehaviour
     public Deck Deck;
     public Hand Hand;
     public Pile DiscardPile;
+    public GameObject Player;
 
     [Header("预制体引用")]
     public GameObject CardPrefab;
@@ -19,6 +21,10 @@ public class GameManager : MonoBehaviour
     [Header("回合设置")]
     public int defaultDrawCount = 5; // 在 Inspector 中调整默认抽牌数
 
+    [Header("费用配置")]
+    public int maxCost = 3; // 最大费用（每回合上限）
+    public int currentCost;  // 当前可用费用
+
     private void Awake()
     {
         // 单例初始化
@@ -26,6 +32,52 @@ public class GameManager : MonoBehaviour
             Instance = this;
         else
             Destroy(gameObject);
+    }
+
+    public void ResetCost()
+    {
+        currentCost = maxCost;
+        Debug.Log($"回合开始，费用重置为：{currentCost}/{maxCost}");
+        // 可选：更新UI显示费用（调用UI刷新方法）
+        UpdateCostUI();
+    }
+
+    // 扣除费用（返回是否扣除成功）
+    public bool SpendCost(int cost)
+    {
+        if (currentCost >= cost)
+        {
+            currentCost -= cost;
+            Debug.Log($"扣除费用：{cost}，剩余费用：{currentCost}");
+            UpdateCostUI(); // 更新UI
+            return true;
+        }
+        else
+        {
+            Debug.LogWarning($"费用不足！当前：{currentCost}，需要：{cost}");
+            return false;
+        }
+    }
+
+    // 增加费用（可选，如通过卡牌/道具临时增加）
+    public void AddCost(int amount)
+    {
+        currentCost = Mathf.Min(currentCost + amount, maxCost); // 不超过最大费用
+        UpdateCostUI();
+    }
+
+    // 更新费用UI显示（需结合你的UI逻辑实现）
+    private void UpdateCostUI()
+    {
+        // 调用CostUIManager更新UI
+        if (CostUIManager.Instance != null)
+        {
+            CostUIManager.Instance.UpdateCostUI(currentCost, maxCost);
+        }
+        else
+        {
+            Debug.LogWarning("未找到CostUIManager，请确保场景中已添加并挂载脚本");
+        }
     }
 
     // 无参重载：使用 Inspector 中的默认值
@@ -53,6 +105,8 @@ public class GameManager : MonoBehaviour
             Debug.LogError("StartTurn：Hand 引用为 null。请在 Inspector 绑定 Hand。");
             return;
         }
+
+        GameManager.Instance.ResetCost(); // 重置费用
 
         for (int i = 0; i < drawCount; i++)
         {
