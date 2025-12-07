@@ -262,6 +262,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 939537982}
     m_Modifications:
+    - target: {fileID: 571603098255252504, guid: 96e5188a210ed0948b1d36d46cbe1382, type: 3}
+      propertyPath: player
+      value: 
+      objectReference: {fileID: 647210103}
     - target: {fileID: 1128189377092028035, guid: 96e5188a210ed0948b1d36d46cbe1382, type: 3}
       propertyPath: m_Size.x
       value: 14.4
@@ -3424,7 +3428,7 @@ PrefabInstance:
     - target: {fileID: 1728187108097944419, guid: ed5bd1ed175d491429e4d4afe72db56c, type: 3}
       propertyPath: m_Sprite
       value: 
-      objectReference: {fileID: 21300000, guid: a65813bf6902a284188a937c68ed6ddc, type: 3}
+      objectReference: {fileID: 21300000, guid: 55b2cf604c9c9ab4ab7f51ded0c25f7e, type: 3}
     - target: {fileID: 2009253850437143460, guid: ed5bd1ed175d491429e4d4afe72db56c, type: 3}
       propertyPath: m_Sprite
       value: 
