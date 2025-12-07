@@ -14,6 +14,9 @@
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
   <component name="HighlightingSettingsPerFile">
+    <setting file="file://$PROJECT_DIR$/Assets/Scripts/Enemy/Assassin.prefab" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Assets/Scripts/Round/DelayClick.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Assets/Scripts/SceneChange/EscPanel.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Library/PackageCache/com.unity.purchasing@4.11.0/Editor/UnityPurchasingEditor.cs" root0="SKIP_HIGHLIGHTING" />
   </component>
   <component name="MetaFilesCheckinStateConfiguration" checkMetaFiles="true" />
@@ -108,6 +111,8 @@
       <workItem from="1764662022977" duration="12690000" />
       <workItem from="1764676084734" duration="437000" />
       <workItem from="1764753242686" duration="727000" />
+      <workItem from="1765003120356" duration="15143000" />
+      <workItem from="1765088708004" duration="2575000" />
     </task>
     <servers />
   </component>
