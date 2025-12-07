@@ -9,7 +9,6 @@ public class Deck : MonoBehaviour
     // 实际牌库（存储卡牌数据，洗牌用）
     private List<CardData> _cardPool = new List<CardData>();
 
-
     private void Awake()
     {
         // 单例初始化
@@ -19,19 +18,13 @@ public class Deck : MonoBehaviour
             // 初始化牌库：将初始卡牌添加到牌池
             if (initialCards != null)
             {
-                // 过滤掉可能的 null 条目，避免运行时取出 null 引发 NRE
-                int before = initialCards.Count;
-                var valid = initialCards.FindAll(c => c != null);
-                _cardPool.AddRange(valid);
-                if (valid.Count != before)
-                {
-                    Debug.LogWarning("Deck：initialCards 中存在 null 条目，已自动过滤。");
-                }
+                // 过滤 null，避免运行时 NRE
+                _cardPool.AddRange(initialCards.FindAll(c => c != null));
                 ShuffleDeck(); // 初始洗牌
             }
             else
             {
-                Debug.LogWarning("Deck：初始卡牌列表（initialCards）未赋值！");
+                Debug.LogWarning("Deck：initialCards 未赋值（Inspector），牌库为空。");
             }
         }
         else
@@ -40,8 +33,7 @@ public class Deck : MonoBehaviour
         }
     }
 
-
-    // 洗牌（Fisher-Yates 洗牌算法，公平随机）
+    // 洗牌（Fisher-Yates）
     public void ShuffleDeck()
     {
         int n = _cardPool.Count;
@@ -51,88 +43,82 @@ public class Deck : MonoBehaviour
             int k = Random.Range(0, n + 1);
             (_cardPool[k], _cardPool[n]) = (_cardPool[n], _cardPool[k]);
         }
-        Debug.Log("牌库已洗牌");
+        Debug.Log("Deck: 牌库已洗牌，剩余 " + _cardPool.Count + " 张。");
     }
 
-    // 抽牌（返回卡牌实例，添加到手牌）
+    // 抽牌（返回 Card 实例）
     public Card DrawCard()
     {
-        // 清理可能的 null 条目（防止后续访问 null.CardName）
+        // 清理可能的 null 条目
         _cardPool.RemoveAll(d => d == null);
 
-        // 牌库为空时，将弃牌堆洗牌加入牌库
         if (_cardPool.Count == 0)
         {
-            Debug.Log("牌库为空，尝试从弃牌堆补充");
-            // 在调用补充前确保 GameManager 可用
+            Debug.Log("Deck.DrawCard: 牌库为空，尝试从弃牌堆补充。");
             if (GameManager.Instance == null)
             {
-                Debug.LogError("Deck：无法补充，GameManager.Instance 为 null！");
+                Debug.LogError("Deck.DrawCard: 无法补牌，GameManager.Instance 为 null。");
                 return null;
             }
             RefillFromDiscardPile();
-            // 再次移除 null 并检查
             _cardPool.RemoveAll(d => d == null);
             if (_cardPool.Count == 0)
             {
-                Debug.Log("无牌可抽！");
+                Debug.LogWarning("Deck.DrawCard: 补牌后仍无牌可抽。");
                 return null;
             }
         }
 
-        // 取出牌池第一张牌
         CardData drawnData = _cardPool[0];
         _cardPool.RemoveAt(0);
 
         if (drawnData == null)
         {
-            Debug.LogError("Deck：抽到的 CardData 为 null，跳过并尝试下一张。");
-            return DrawCard(); // 递归尝试下一张（安全，因为我们已清理 null）
+            Debug.LogError("Deck.DrawCard: 抽到 null CardData（已过滤但仍发生），返回 null。");
+            return null;
         }
 
-        // 实例化卡牌并添加到手牌
+        // 确保 GameManager 与 CardPrefab 可用
         if (GameManager.Instance == null)
         {
-            Debug.LogError("Deck：GameManager.Instance 为 null！");
+            Debug.LogError("Deck.DrawCard: GameManager.Instance 为 null，无法实例化卡牌预制体。");
             return null;
         }
         if (GameManager.Instance.CardPrefab == null)
         {
-            Debug.LogError("Deck：GameManager 的 CardPrefab 未赋值！");
+            Debug.LogError("Deck.DrawCard: GameManager.CardPrefab 未设置！请在 Inspector 指定项目内的卡牌 Prefab（不可为场景对象）。");
             return null;
         }
 
-        // 如果是 UI 卡牌，推荐把实例放入手牌父物体，确保 Canvas/RectTransform 正常显示
+        // 实例化：优先放到 handTransform（UI 父物体）下，确保显示与缩放正确
         Transform parent = GameManager.Instance.handTransform;
-        GameObject cardObj;
-        if (parent != null)
+        GameObject cardObj = parent != null
+            ? Instantiate(GameManager.Instance.CardPrefab, parent, false)
+            : Instantiate(GameManager.Instance.CardPrefab);
+
+        // 容错：确保实例化结果非 null
+        if (cardObj == null)
         {
-            cardObj = Instantiate(GameManager.Instance.CardPrefab, parent, false);
-        }
-        else
-        {
-            cardObj = Instantiate(GameManager.Instance.CardPrefab);
+            Debug.LogError("Deck.DrawCard: Instantiate 返回 null（请检查 CardPrefab 是否为有效 Prefab）。");
+            return null;
         }
 
         string safeName = string.IsNullOrEmpty(drawnData.CardName) ? "Unknown" : drawnData.CardName;
         cardObj.name = $"Card_{safeName}";
 
-        // 对 UI prefab 确保缩放正确（避免预制体保存了非 1 的缩放）
+        // 强制重置缩放（UI 预制体避免异常缩放）
         cardObj.transform.localScale = Vector3.one;
 
         Card card = cardObj.GetComponent<Card>();
-        if (card != null)
+        if (card == null)
         {
-            card.Init(drawnData);
-        }
-        else
-        {
-            Debug.LogError($"Deck：卡牌预制体 {cardObj.name} 未挂载 Card 脚本！");
+            Debug.LogError($"Deck.DrawCard: 预制体 {cardObj.name} 未挂载 Card 脚本，销毁实例并返回 null。");
             Destroy(cardObj);
             return null;
         }
 
-        Debug.Log($"抽牌：{drawnData.CardName}");
+        card.Init(drawnData);
+        Debug.Log($"Deck.DrawCard: 抽到卡片 {drawnData.CardName}，实例化成功。");
         return card;
     }
 
@@ -141,26 +127,24 @@ public class Deck : MonoBehaviour
     {
         if (GameManager.Instance == null)
         {
-            Debug.LogError("RefillFromDiscardPile：GameManager.Instance 为 null，无法补充牌库。");
+            Debug.LogError("RefillFromDiscardPile: GameManager.Instance 为 null，无法补牌。");
             return;
         }
-
         if (GameManager.Instance.DiscardPile == null)
         {
-            Debug.LogWarning("RefillFromDiscardPile：DiscardPile 为 null，无法补充牌库。");
+            Debug.LogWarning("RefillFromDiscardPile: DiscardPile 未设置，无法补牌。");
             return;
         }
 
         var discarded = GameManager.Instance.DiscardPile.GetAllCards();
         if (discarded == null || discarded.Count == 0)
         {
-            Debug.Log("RefillFromDiscardPile：弃牌堆为空或返回 null。");
+            Debug.Log("RefillFromDiscardPile: 弃牌堆为空。");
             return;
         }
 
-        // 只加入非 null 的卡牌数据
         int added = 0;
-        foreach (CardData data in discarded)
+        foreach (var data in discarded)
         {
             if (data != null)
             {
@@ -169,28 +153,21 @@ public class Deck : MonoBehaviour
             }
         }
 
-        // 清空弃牌堆并洗牌（只在确实添加了卡牌时洗牌）
         GameManager.Instance.DiscardPile.ClearPile();
-
-        if (added > 0)
-        {
-            ShuffleDeck();
-            Debug.Log($"从弃牌堆补充了 {added} 张卡牌到牌库");
-        }
+        if (added > 0) ShuffleDeck();
+        Debug.Log($"RefillFromDiscardPile: 从弃牌堆补充了 {added} 张牌到牌库。");
     }
 
-    // 向牌库添加新卡牌（如商店购买、奖励）
     public void AddCardToDeck(CardData newCard)
     {
         if (newCard == null)
         {
-            Debug.LogWarning("AddCardToDeck: 试图添加 null 卡牌，已忽略。");
+            Debug.LogWarning("Deck.AddCardToDeck: 试图添加 null 卡牌，已忽略。");
             return;
         }
         _cardPool.Add(newCard);
-        Debug.Log($"添加卡牌到牌库：{newCard.CardName}");
+        Debug.Log($"Deck.AddCardToDeck: 添加卡牌 {newCard.CardName} 到牌库，当前数量 {_cardPool.Count}。");
     }
 
-    // 获取牌库剩余卡牌数
     public int GetRemainingCards() => _cardPool.Count;
 }

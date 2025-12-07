@@ -58,69 +58,56 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    // 增加费用（可选，如通过卡牌/道具临时增加）
     public void AddCost(int amount)
     {
         currentCost = Mathf.Min(currentCost + amount, maxCost); // 不超过最大费用
         UpdateCostUI();
     }
 
-    // 更新费用UI显示（需结合你的UI逻辑实现）
     public void UpdateCostUI()
     {
-        // 调用CostUIManager更新UI
         if (CostUIManager.Instance != null)
         {
             CostUIManager.Instance.UpdateCostUI(currentCost, maxCost);
         }
-        else
-        {
-           // CostUIManager 不存在时不打印过多日志，避免噪声
-        }
     }
 
-    // 无参重载：使用 Inspector 中的默认值
     public void StartTurn() => StartTurn(defaultDrawCount);
 
-    // 开始回合：抽指定数量的牌（带诊断日志）
     public void StartTurn(int drawCount)
     {
         Debug.Log($"=== 回合开始 === drawCount={drawCount}");
+        var gmInst = Instance;
+        Debug.Log($"GameManager.Instance != null: {gmInst != null}");
+        Debug.Log($"Deck reference set: {Deck != null} | Deck.Instance: {Deck?.GetRemainingCards() ?? -1}");
+        if (Deck != null)
+        {
+            Debug.Log($"Deck.initialCards count: {Deck.initialCards?.Count ?? -1} | Deck pool: {Deck.GetRemainingCards()}");
+        }
 
         if (Instance == null)
         {
             Debug.LogError("StartTurn 调用时 GameManager.Instance 为 null。确保 GameManager 已在场景中并启用。");
             return;
         }
-
         if (Deck == null)
         {
-            Debug.LogError("StartTurn：Deck 引用为 null。请在 Inspector 将带有 Deck 脚本的 GameObject 拖到 GameManager 的 Deck 字段上。");
+            Debug.LogError("StartTurn：Deck 引用为 null。请在 Inspector 绑定 Deck。");
             return;
         }
-
         if (Hand == null)
         {
             Debug.LogError("StartTurn：Hand 引用为 null。请在 Inspector 绑定 Hand。");
             return;
         }
 
-        GameManager.Instance.ResetCost(); // 重置费用
+        ResetCost(); // 会打印费用重置日志
 
         for (int i = 0; i < drawCount; i++)
         {
             Debug.Log($"StartTurn: 尝试抽牌 i={i}");
-            Card drawnCard = null;
-            try
-            {
-                drawnCard = Deck.DrawCard();
-            }
-            catch (System.Exception ex)
-            {
-                Debug.LogError($"StartTurn: 调用 Deck.DrawCard() 时抛出异常：{ex.Message}\n{ex.StackTrace}");
-                return;
-            }
-
+            Card drawnCard = Deck.DrawCard();
+            Debug.Log($"StartTurn: DrawCard 返回 {(drawnCard == null ? "null" : drawnCard.name)}");
             if (drawnCard == null)
             {
                 Debug.LogWarning($"StartTurn: 第 {i} 次抽牌返回 null（可能牌库为空或预制体/脚本配置有误）");
@@ -131,13 +118,31 @@ public class GameManager : MonoBehaviour
                 Debug.Log($"StartTurn: 第 {i} 次抽到卡片 {drawnCard.name}");
             }
         }
+
+        // 诊断：列出 handTransform / HandPanel 下的子对象
+        if (handTransform != null)
+        {
+            Debug.Log($"StartTurn: handTransform childCount = {handTransform.childCount}");
+            for (int i = 0; i < handTransform.childCount; i++)
+            {
+                Debug.Log($" - hand child[{i}] = {handTransform.GetChild(i).name}");
+            }
+        }
+        if (Hand != null && Hand.HandPanel != null)
+        {
+            Debug.Log($"StartTurn: Hand.HandPanel childCount = {Hand.HandPanel.childCount}");
+            for (int i = 0; i < Hand.HandPanel.childCount; i++)
+            {
+                Debug.Log($" - HandPanel child[{i}] = {Hand.HandPanel.GetChild(i).name}");
+            }
+        }
+
+        Debug.Log("StartTurn: 抽牌循环结束");
     }
 
-    // 结束回合：弃置所有手牌，准备下回合
     public void EndTurn()
     {
         Debug.Log("=== 回合结束 ===");
         Hand.DiscardAllCards();
-        // 下回合可调用StartTurn()开始
     }
 }
