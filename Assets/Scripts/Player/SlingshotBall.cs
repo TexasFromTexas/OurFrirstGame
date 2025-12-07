@@ -38,10 +38,11 @@ public class SlingshotBall : MonoBehaviour
     private bool isDragging;
     private Camera mainCamera;
     private LineRenderer guideLine;
-    public bool isStop;
+    [HideInInspector]public bool isStop = false;
+	private bool hasLaunched = false;   // 标记“这一回合是否真的发射过”
 
-    // 【轨迹功能】轨迹核心变量
-    private LineRenderer trajectoryLine; // 轨迹渲染器
+	// 【轨迹功能】轨迹核心变量
+	private LineRenderer trajectoryLine; // 轨迹渲染器
     private List<Vector3> trajectoryPoints = new List<Vector3>(); // 轨迹点容器
     private float lastRecordTime; // 上次记录时间（控制频率）
     private Vector3 lastRecordPos; // 上次记录位置（去重）
@@ -129,6 +130,7 @@ public class SlingshotBall : MonoBehaviour
                 hasCollided = false;
                 collisionSelfVelBefore = collisionOtherVelBefore = Vector2.zero;
                 collisionSelfVelAfter = collisionOtherVelAfter = Vector2.zero;
+
             }
         }
 
@@ -172,30 +174,44 @@ public class SlingshotBall : MonoBehaviour
             currentLaunchSpeed = rb.velocity.magnitude;
             Debug.Log($"发射速度：{currentLaunchSpeed:F2} 单位/秒");
 
-            // 【轨迹功能】开始记录全流程轨迹（含碰撞反弹）
-            StartRecordTrajectory();
+			hasLaunched = true;  // 已经发射过一发
+            isStop = false;
+
+			// 【轨迹功能】开始记录全流程轨迹（含碰撞反弹）
+			StartRecordTrajectory();
 
             guideLine.positionCount = 0;
             guideLine.enabled = false;
         }
+        // ……你原来的拖拽、画线、发射逻辑……
 
-        if (Input.GetMouseButtonUp(0))
+        // ====== 判断小球是否真正停下来了 ======
+        // 只有在这一回合“发射过”并且“当前不在拖拽”的时候，才开始看速度
+        // 小球是否发射过 + 不是拖拽状态
+        if (hasLaunched && !isDragging)
         {
-            isStop = true;
-        }
-        else
-        {
-            isStop = false;
-        }
-        
-        if (isStop)
-        {
-            return;
-        }
-    }
+            float speed = rb.velocity.magnitude;
 
-    // 【动量守恒核心：重构碰撞逻辑 - 修复质量相等时速度不变问题】
-    private void OnCollisionEnter2D(Collision2D collision)
+            // 第一次检测到小球完全静止 → 标记 isStop = true
+            if (!isStop && speed < 0.05f)
+            {
+                isStop = true;
+                Debug.Log("【SlingshotBall】小球完全停下，回合结束");
+            }
+        }
+
+	}
+
+	public void StartNewRound()
+	{
+		// 这一回合重新计算
+		isStop = false;
+		hasLaunched = false;
+	}
+
+
+	// 【动量守恒核心：重构碰撞逻辑 - 修复质量相等时速度不变问题】
+	private void OnCollisionEnter2D(Collision2D collision)
     {
         // 步骤1：仅处理小球碰撞（必须给所有小球打"Player"标签）
         if (!collision.gameObject.CompareTag("Player")) return;
@@ -428,7 +444,10 @@ public class SlingshotBall : MonoBehaviour
         currentLaunchSpeed = 0;
         hasCollided = false;
 
-        // 【轨迹功能】重置时清空轨迹
-        ClearTrajectory();
+		isStop = false;
+		hasLaunched = false;
+
+		// 【轨迹功能】重置时清空轨迹
+		ClearTrajectory();
     }
 }

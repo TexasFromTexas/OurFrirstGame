@@ -3,102 +3,102 @@ using UnityEngine;
 
 public class BossSpawner : MonoBehaviour
 {
-	[Header("场景里提前摆好的 Boss 对象")]
-	public GameObject bossObject;       // 直接把场景里的 Boss 拖进来（不是 prefab）
-	public GameObject bossBar;
+	[Header("场景里提前摆好的 Boss 对象（Hierarchy 里的 Boss）")]
+	public GameObject bossObject;     // 直接把 Hierarchy 里的 Boss 拖进来
+	public GameObject bossBar;        // Boss 的血条 UI
+	public SceneBGM bgm;              // 场景音乐控制
+	[Header("Boss 音乐")]
+	public AudioClip bossMusic;
 
 	[Header("回合管理器")]
-	public Round round;                 // 你的 Round 脚本
+	public Round round;
 
 	[Header("出场动画（可选）")]
-	public Animator spawnAnimator;      // 比如魔法阵 / 门的 Animator
+	public Animator spawnAnimator;
 	public string spawnTriggerName = "Spawn";
-	public float spawnDelay = 1f;       // 播动画多久后，让 Boss 真正出现
+	public float spawnDelay = 1f;
 
 	private bool spawned = false;
 
 	private void Awake()
 	{
-		// ★ 不管 Inspector 里是不是勾上，代码强制一开局就藏起来
+		// 开局强制隐藏 Boss 和血条
 		if (bossObject != null)
-		{
-			bossBar.gameObject.SetActive(false);
 			bossObject.SetActive(false);
-		}
+		if (bossBar != null)
+			bossBar.SetActive(false);
 	}
 
-	/// <summary>
-	/// 外部调用：生成 Boss（带可选动画）
-	/// </summary>
-	public void SpawnBoss()
+	public EnemyAI SpawnBoss()
 	{
-		if (spawned) return;
+		if (spawned)
+			return bossObject != null ? bossObject.GetComponent<EnemyAI>() : null;
+
 		spawned = true;
-
-		StartCoroutine(SpawnBossRoutine());
+		StartCoroutine(SpawnRoutine());
+		return bossObject != null ? bossObject.GetComponent<EnemyAI>() : null;
 	}
 
-	private IEnumerator SpawnBossRoutine()
+	private IEnumerator SpawnRoutine()
 	{
-		// 1）播出场动画（如果有）
 		if (spawnAnimator != null && !string.IsNullOrEmpty(spawnTriggerName))
 		{
 			spawnAnimator.SetTrigger(spawnTriggerName);
 		}
 
-		// 2）等一小段时间，让动画演一下
 		if (spawnDelay > 0f)
-		{
 			yield return new WaitForSeconds(spawnDelay);
-		}
 
-		// 3）真正让 Boss 出现在场景中
-		if (bossObject != null)
+		if (bossObject == null)
 		{
-			bossObject.SetActive(true);   // ★ 这一步才是“出现”
-			bossBar.gameObject.SetActive(true);
-		}
-		else
-		{
-			Debug.LogError("[BossSpawner] bossObject 为空，你要把场景里的 Boss 拖进来！");
+			Debug.LogError("[BossSpawner] bossObject 为空，请把场景里的 Boss 拖进来！");
 			yield break;
 		}
 
-		// 4）把 Boss 注册到 Round 的敌人列表，让它参与回合
+		bossObject.SetActive(true);
+		if (bossBar != null)
+			bossBar.SetActive(true);
+
+		if (bgm != null && bossMusic != null)
+		{
+			bgm.FadeMusic(bossMusic);
+		}
+
+		if (round == null)
+			round = FindObjectOfType<Round>();
+
 		if (round != null)
 		{
-			EnemyAI bossAI = bossObject.GetComponent<EnemyAI>();
+			var bossAI = bossObject.GetComponent<EnemyAI>();
 			if (bossAI != null)
 			{
-				round.RegisterEnemy(bossAI);
-				Debug.Log("[BossSpawner] Boss 已加入 Round 敌人列表");
+				// 通知 Round：Boss 已经刷新
+				round.NotifyBossSpawned(bossAI);
+				Debug.Log("[BossSpawner] Boss 已加入 Round 的敌人列表");
 			}
 			else
 			{
-				Debug.LogError("[BossSpawner] Boss 上没有 EnemyAI/BossAI 组件！");
+				Debug.LogError("[BossSpawner] Boss 上没有 EnemyAI 组件！");
 			}
 		}
-
-		Debug.Log("[BossSpawner] Boss 出场完成");
+		else
+		{
+			Debug.LogError("[BossSpawner] 找不到 Round 管理器！");
+		}
 	}
 
-	// 方便测试：在 Inspector 右键这个脚本 → 生成 Boss（测试）
-	[ContextMenu("生成 Boss（测试）")]
+	[ContextMenu("测试生成 Boss")]
 	private void EditorTestSpawnBoss()
 	{
 		if (!Application.isPlaying)
 		{
-			Debug.LogWarning("请在 Play 模式下使用这个测试按钮");
+			Debug.LogWarning("请在 Play 模式下使用测试按钮");
 			return;
 		}
 
-		// 找一下 Round（如果你没拖的话）
 		if (round == null)
-		{
 			round = FindObjectOfType<Round>();
-		}
 
 		SpawnBoss();
 	}
 }
-

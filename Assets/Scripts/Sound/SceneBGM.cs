@@ -1,42 +1,32 @@
-using System.Collections;
-using System.Collections.Generic;
+using System;
 using UnityEngine;
 
-public class SceneBGM: MonoBehaviour
+public class SceneBGM : MonoBehaviour
 {
-	public AudioClip bgm;
-
-	private void Start()
+	public AudioClip defaultMusic;   // 场景默认 BGM
+	void Start()
 	{
-		if(MusicManager.Instance!= null)
+		if (MusicManager.Instance != null && defaultMusic != null)
 		{
-			MusicManager.Instance.PlayMusic(bgm);
+			// 进这个场景时淡入默认 BGM
+			MusicManager.Instance.PlayMusicWithFade(defaultMusic, 1.0f, 0.7f);
 		}
 	}
 
-	public IEnumerator FadeMusic(AudioClip newClip)
+	// BossSpawner 会调用这个，把 Boss 的 BGM 传进来
+	public void FadeMusic(AudioClip newMusic, float fadeTime = 1.0f, float targetVolume = 0.7f)
 	{
-		float t = 0f;
-
-		// 淡出
-		while (t < 1f)
+		if (MusicManager.Instance != null && newMusic != null)
 		{
-			MusicManager.Instance.audioSource.volume = 1f - t;
-			t += Time.deltaTime;
-			yield return null;
-		}
-
-
-		MusicManager.Instance.PlayMusic(newClip);
-
-		// 淡入
-		t = 0f;
-		while (t < 1f)
-		{
-			MusicManager.Instance.audioSource.volume = t;
-			t += Time.deltaTime;
-			yield return null;
+			MusicManager.Instance.PlayMusicWithFade(newMusic, fadeTime, targetVolume);
 		}
 	}
 
+	public void FadeBackToNormal()
+	{
+		if (MusicManager.Instance != null)
+		{
+			MusicManager.Instance.PlayMusicWithFade(defaultMusic, 1.0f, 0.8f);
+		}
+	}
 }
