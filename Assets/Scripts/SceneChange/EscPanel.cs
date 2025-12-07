@@ -17,7 +17,7 @@ public class EscPanel : MonoBehaviour
     }
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.Escape) && isEsc== false)
+        if (Input.GetKeyDown(KeyCode.Escape) && isEsc == false)
             ShowPanel();
         else if(Input.GetKeyDown(KeyCode.Escape))
             HidePanel();
