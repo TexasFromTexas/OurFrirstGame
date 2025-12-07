@@ -1,132 +1,174 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using static BossSpawner;
+
 public class Round : MonoBehaviour
 {
 	public enum TurnState
 	{
-		BallRound, // 现在是 BallRound
-		EnemyRound, // 现在是 EnemyRound
+		BallRound,
+		EnemyRound,
 		GameOver
 	}
-	public float BallTime = 1f;
+
 	public TurnState currentTurnState = TurnState.BallRound;
-	
-	public SlingshotBall ballScript; // 控制小球的脚本
-	public List<EnemyAI> enemies = new List<EnemyAI>(); // 控制敌人的脚本
+
+	[Header("玩家")]
+	public SlingshotBall ballScript;
+
+	[Header("当前场上所有敌人（小怪 + Boss）")]
+	public List<EnemyAI> enemies = new List<EnemyAI>();
+
+	[Header("只用于判断小怪是否清空（不要把 Boss 塞进来）")]
+	[SerializeField] private List<EnemyAI> minionEnemies = new List<EnemyAI>();
+
+	[Header("Boss 刷新")]
+	public BossSpawner bossSpawner;
 	private bool bossSpawned = false;
 
-	[Header("Boss生成器")]
-	public BossSpawner bossSpawner;
-
-	void Start()
+	private void Start()
 	{
-		if (enemies.Count == 0) {
+		// 如果你懒得在 Inspector 里拖，就自动收集场景里的敌人（不包括一开始就隐藏的 Boss）
+		if (enemies.Count == 0)
+		{
 			enemies.AddRange(FindObjectsOfType<EnemyAI>());
 		}
 
-		StartCoroutine(HandleTurns()); // 启动回合控制协程
+		// 初始小怪列表：默认就是开局的这些敌人（不开启的 Boss 不会被算进去）
+		if (minionEnemies.Count == 0)
+		{
+			minionEnemies = new List<EnemyAI>(enemies);
+		}
+
+		StartCoroutine(HandleTurns());
 	}
-	IEnumerator HandleTurns()
+
+	private IEnumerator HandleTurns()
 	{
 		while (currentTurnState != TurnState.GameOver)
 		{
 			switch (currentTurnState)
 			{
-				case TurnState.BallRound: // 玩家回合
-					StartBallRound(); // 启动 BallRound
-					yield return new WaitUntil(() => ballScript.isStop);
-					yield return new WaitForSeconds(BallTime);
-					EndBallRound(); // 结束 BallRound
+				case TurnState.BallRound:
+					StartBallRound();
+					yield return new WaitUntil(() => ballScript != null && ballScript.isStop);
+					yield return new WaitForSeconds(0.2f);
+					EndBallRound();
 					break;
 
-				case TurnState.EnemyRound: // 敌人回合
+				case TurnState.EnemyRound:
 					yield return StartCoroutine(HandleEnemyRound());
-					EndEnemyRound(); // 结束 EnemyRound
+					EndEnemyRound();
 					break;
 			}
+
+			yield return null;
 		}
 	}
 
-	public void RegisterEnemy(EnemyAI boss)
-	{
-		if (boss != null && !enemies.Contains(boss))
-		{
-			enemies.Add(boss);
-			Debug.Log("[Round] Boss 已加入敌人回合列表");
-		}
-	}
+	// ---------- 玩家回合 ----------
 
-
-	// 启动 BallRound
 	void StartBallRound()
 	{
-		// 启用小球控制脚本
-		if (ballScript != null) 
+		if (ballScript != null)
+		{
 			ballScript.enabled = true;
+			ballScript.StartNewRound();   // ✅ 统一在这里清状态
+		}
 	}
 
-	// 结束 BallRound
-	void EndBallRound()
+
+	private void EndBallRound()
 	{
-		if (ballScript != null)ballScript.enabled = false;
-		currentTurnState = TurnState.EnemyRound; // 转到敌人回合
+		if (ballScript != null)
+			ballScript.enabled = false;
+
+		currentTurnState = TurnState.EnemyRound;
 	}
 
-	// ⭐ 敌人回合：依次让每个敌人行动一次
-	IEnumerator HandleEnemyRound()
-	{
-		Debug.Log("敌人回合开始");
+	// ---------- 敌人回合（所有敌人轮流行动） ----------
 
-		// 清理已经死掉/销毁的敌人
+	private IEnumerator HandleEnemyRound()
+	{
+		Debug.Log("[Round] 敌人回合开始");
+
+		// 清理已经真正被 Destroy 的敌人
 		enemies.RemoveAll(e => e == null);
 
-		// 如果没有敌人了，可以直接 GameOver 或进入下一关
+		// 如果场上没有任何敌人了：
 		if (enemies.Count == 0)
 		{
-			if (!bossSpawned && bossSpawner != null) {
-				bossSpawned = true;
-
-				//播放动画---还没做
-
-				enemies.RemoveAll(e => e == null);
-			}
-			else
+			// 1）Boss 已经刷出来又死了 → 通关
+			if (bossSpawned)
 			{
-				// 2）Boss 也已经死了 → 通关
-				Debug.Log("[Turn] 所有敌人（包括 Boss）都死了，通关！");
+				Debug.Log("[Round] 所有敌人（包括 Boss）都死了，通关！");
 				currentTurnState = TurnState.GameOver;
 				yield break;
 			}
-			
-		}
-		// 再检查一次，防止生成 Boss 失败之类
-		if (enemies.Count == 0)
-		{
-			currentTurnState = TurnState.GameOver;
+			// 2）理论上这里小怪清空但 Boss 还没刷，这种情况 OnEnemyDead 会负责刷 Boss，
+			//    这里就当这一轮敌人没人行动，直接结束这回合即可。
+			Debug.Log("[Round] 当前回合没有敌人可行动");
 			yield break;
 		}
-		// 逐个敌人轮着走
-		foreach (var enemy in enemies)
+
+		// 还有敌人（可能包含 Boss），轮流行动
+		var snapshot = new List<EnemyAI>(enemies); // 避免遍历时列表被修改
+
+		foreach (var enemy in snapshot)
 		{
 			if (enemy == null) continue;
 
-			// 开启这个敌人的一回合
 			enemy.BeginTurn();
-
-			// 等这个敌人动完（isMyTurn 在 EnemyAI.EndTurn 里会变成 false）
 			yield return new WaitUntil(() => enemy.isMyTurn == false);
-
-			// 敌人之间稍微留个间隔
-			yield return new WaitForSeconds(0.3f);
+			yield return new WaitForSeconds(0.1f);
 		}
 
-		Debug.Log("敌人回合结束（全部行动完）");
+		Debug.Log("[Round] 敌人回合结束");
 	}
-	// 结束 EnemyRound
-	void EndEnemyRound()
+
+	private void EndEnemyRound()
 	{
-		currentTurnState = TurnState.BallRound; // 转到玩家回合
+		currentTurnState = TurnState.BallRound;
+	}
+
+	// ---------- 敌人注册 / 死亡回调 ----------
+
+	/// <summary>
+	/// BossSpawner 等地方生成新敌人时调用
+	/// </summary>
+	public void RegisterEnemy(EnemyAI enemy)
+	{
+		if (enemy != null && !enemies.Contains(enemy))
+		{
+			enemies.Add(enemy);
+		}
+	}
+
+	/// <summary>
+	/// 敌人死亡时调用（由 HealthSystem_New / EnemyDamageReceiver 通知）
+	/// </summary>
+	public void OnEnemyDead(EnemyAI enemy)
+	{
+		if (enemy == null) return;
+
+		enemies.Remove(enemy);
+		minionEnemies.Remove(enemy);
+
+		// ★ 小怪全灭，但 Boss 还没刷出来 → 现在立刻刷 Boss
+		if (!bossSpawned && bossSpawner != null && minionEnemies.Count == 0)
+		{
+			bossSpawned = true;
+			bossSpawner.SpawnBoss();
+			Debug.Log("[Round] 小怪清空，刷新 Boss！");
+		}
+	}
+
+	/// <summary>
+	/// 给 BossSpawner 调用，告诉 Round：Boss 已经正式生成
+	/// </summary>
+	public void NotifyBossSpawned(EnemyAI boss)
+	{
+		bossSpawned = true;
+		RegisterEnemy(boss);
 	}
 }

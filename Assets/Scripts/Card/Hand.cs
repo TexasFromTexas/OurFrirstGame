@@ -89,58 +89,34 @@ public class Hand : MonoBehaviour
     public void RearrangeCards()
     {
         if (HandPanel == null) return;
-
-        // ---------- 1) 清理已被销毁的引用 ----------
-        // 使用临时列表收集仍然有效的 Card 引用（避免在迭代中修改原列表）
-        var liveCards = new List<Card>(capacity: _currentHand.Count);
-        foreach (var c in _currentHand)
-        {
-            // Unity 对已销毁对象的 == 运算符会返回 true
-            if (c == null) continue;
-            // 额外防护：确保 GameObject 未被销毁（保险）
-            if (c.gameObject == null) continue;
-            liveCards.Add(c);
-        }
-
-        // 如果有引用被移除，替换原列表
-        if (liveCards.Count != _currentHand.Count)
-        {
-            _currentHand = liveCards;
-        }
-
         int cardCount = _currentHand.Count;
         if (cardCount == 0) return;
 
-        // ---------- 2) 计算排布参数 ----------
+        // 直接获取 HandPanel 的实际宽度（无需通过 GameManager）
         float panelWidth = HandPanel.rect.width;
         float cardWidth = defaultCardSize.x;
 
         float actualSpacing = 0f;
         if (cardCount > 1)
         {
-            float maxAllowedSpacing = (panelWidth - cardWidth) / (cardCount - 1);
+            float maxAllowedSpacing = (panelWidth - cardWidth) / (cardCount - 1); // cardWidth = 单张卡牌宽
             actualSpacing = Mathf.Min(cardSpacing, maxAllowedSpacing);
         }
 
         float totalWidth = (cardCount - 1) * actualSpacing;
         float startX = -totalWidth / 2 + centerOffset.x;
 
-        // ---------- 3) 布局活卡 ----------
         for (int i = 0; i < cardCount; i++)
         {
             Card card = _currentHand[i];
-            if (card == null) continue; // 再次保险检查
-
             RectTransform cardRect = card.GetComponent<RectTransform>();
             if (cardRect == null)
             {
-                Debug.LogError($"Hand.RearrangeCards: 卡牌 {card.name} 缺少 RectTransform，跳过布局。");
+                Debug.LogError($"卡牌 {card.name} 没有 RectTransform 组件！");
                 continue;
             }
-
             cardRect.anchoredPosition = new Vector2(startX + i * actualSpacing, centerOffset.y);
-            cardRect.sizeDelta = defaultCardSize;
-            // 将 sibling index 设置为 i，保持顺序
+            cardRect.sizeDelta = defaultCardSize; // 强制卡牌宽高
             card.transform.SetSiblingIndex(i);
         }
     }

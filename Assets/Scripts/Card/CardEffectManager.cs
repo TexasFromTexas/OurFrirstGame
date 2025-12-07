@@ -21,29 +21,11 @@ public class CardEffectManager : MonoBehaviour
             return;
         }
 
-        // 显式获取单例并判空（不要对 UnityEngine.Object 使用 ?. 运算符）
-        var gm = GameManager.Instance;
-        if (gm == null)
-        {
-            Debug.LogError("ExecuteEffect: GameManager.Instance 为 null，无法执行卡牌效果。");
-            return;
-        }
-
-        // 优先使用 GameManager 提供的 Player 字段
-        GameObject player = gm.Player;
+        var player = GameManager.Instance?.Player;
         if (player == null)
         {
-            // 兜底：尝试按 Tag 查找（需要场景中玩家物体打上 \"Player\" 标签）
-            player = GameObject.FindWithTag("Player");
-            if (player != null)
-            {
-                Debug.LogWarning("ExecuteEffect: GameManager.Instance.Player 未设置，已通过 Tag 找到玩家对象（临时回退）。建议在 GameManager Inspector 中赋值 Player 字段。");
-            }
-            else
-            {
-                Debug.LogError("ExecuteEffect: 未找到 Player（GameManager.Instance.Player 为 null，且场景中无 Tag 为 \"Player\" 的对象）");
-                return;
-            }
+            Debug.LogError("ExecuteEffect: 未找到 Player（GameManager.Instance.Player 为 null）");
+            return;
         }
 
         var bpm = player.GetComponent<BallParameterManager>();
@@ -64,6 +46,7 @@ public class CardEffectManager : MonoBehaviour
 
             case CardData.CardEffect.EnlargeBodytype:
                 {
+                    // 将 effectValue 视为大小增量（与 transform.localScale 单位一致）
                     float cur = player.transform.localScale.x;
                     float target = Mathf.Max(0.1f, cur + cardData.effectValue);
                     if (bpm != null) bpm.BallSize = target;
@@ -81,6 +64,7 @@ public class CardEffectManager : MonoBehaviour
             case CardData.CardEffect.IncreaseSpeed:
                 if (speedComp != null)
                 {
+                    // 使用公开方法修改 speed multiplier
                     speedComp.ModifyDamageMultiplier(cardData.effectValue);
                 }
                 break;
@@ -109,24 +93,24 @@ public class CardEffectManager : MonoBehaviour
                 break;
         }
     }
-
     private void AddCurrentCost(int amount)
     {
         if (GameManager.Instance == null) return;
-        GameManager.Instance.currentCost = Mathf.Min(GameManager.Instance.currentCost + amount, GameManager.Instance.maxCost);
+        GameManager.Instance.currentCost += amount;
+        // 确保不超过最大费用
+        GameManager.Instance.currentCost = Mathf.Min(GameManager.Instance.currentCost, GameManager.Instance.maxCost);
         Debug.Log($"当前费用增加{amount}，剩余：{GameManager.Instance.currentCost}");
         GameManager.Instance.UpdateCostUI(); // 刷新费用UI
     }
-
     private void IncreaseMaxCost(int amount)
     {
         if (GameManager.Instance == null) return;
         GameManager.Instance.maxCost += amount;
+        // 同步更新当前费用（可选：最大费用增加时，当前费用也同步增加）
         GameManager.Instance.currentCost += amount;
         Debug.Log($"最大费用永久增加{amount}，当前最大：{GameManager.Instance.maxCost}");
         GameManager.Instance.UpdateCostUI(); // 刷新费用UI
     }
-
     public void ExecuteDrawCardEffect(int count)
     {
         // 防止被滥用/一次性创建大量对象导致崩溃：限制上限
