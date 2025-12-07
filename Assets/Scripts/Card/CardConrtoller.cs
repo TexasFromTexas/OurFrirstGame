@@ -1,133 +1,92 @@
-using TMPro; // ÍÆ¼öÓÃTextMeshPro£¬Ðèµ¼Èë°ü
+using TMPro; // ï¿½Æ¼ï¿½ï¿½ï¿½TextMeshProï¿½ï¿½ï¿½èµ¼ï¿½ï¿½ï¿½
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using static CardData;
-using static UnityEditor.Progress;
 
 public class Card : MonoBehaviour, IPointerClickHandler, IBeginDragHandler, IDragHandler, IEndDragHandler
 {
-    [Header("UIÒýÓÃ")]
+    [Header("UIï¿½ï¿½ï¿½ï¿½")]
     public Image cardImage;
     public Image Cardname;
     public Image Type;
 
-    // ¿¨ÅÆÊý¾Ý
+    // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
     private CardData _cardData;
-    // ¸¸ÈÝÆ÷£¨ÊÖÅÆ/ÅÆ¿â/ÆúÅÆ¶Ñ£©
+    // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½/ï¿½Æ¿ï¿½/ï¿½ï¿½ï¿½Æ¶Ñ£ï¿½
     private Transform _originalParent;
-    // ÊÇ·ñ¿ÉÍÏ×§
+    // ï¿½Ç·ï¿½ï¿½ï¿½ï¿½×§
     private bool _isDraggable = true;
 
-    // ³õÊ¼»¯¿¨ÅÆÊý¾Ý
+    // ï¿½ï¿½Ê¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
     public void Init(CardData data)
     {
         _cardData = data;
         cardImage.sprite = data.CardSprite;
-
-        // ¸ù¾Ý¿¨ÅÆÀàÐÍÉèÖÃÊýÖµºÍÍ¼±ê
-        switch (data.cardType)
-        {
-            case CardData.CardType.Buff:
-                Type.color = Color.red; // ¸Ä±äÊýÖµÀàÐÍÅÆºìÉ«
-                break;
-            case CardData.CardType.Cost:
-                Type.color = Color.blue; // ·ÑÓÃÏà¹ØÀ¶É«
-                break;
-            case CardData.CardType.Item:
-                Type.color = Color.yellow; // µÀ¾ß»ÆÉ«
-                break;
-        }
-    }
-    private string GetEffectDescription(CardData data)
-    {
-        switch (data.effectType)
-        {
-            case CardEffect.AddHealth:
-                return $"»Ö¸´ {data.effectValue} ÉúÃüÖµ";
-            case CardEffect.ReduceHealth:
-                return $"ÊÜµ½ {data.effectValue} ÉËº¦";
-            case CardEffect.IncreaseSpeed:
-                return $"ËÙ¶ÈÌáÉý {data.effectValue}";
-            case CardEffect.DecreaseSpeed:
-                return $"ËÙ¶È½µµÍ {data.effectValue}";
-            case CardEffect.EnlargeBodytype:
-                return $"Ìå»ýÔö´ó {data.effectValue}";
-            case CardEffect.ShrinkBodytype:
-                return $"Ìå»ýËõÐ¡ {data.effectValue}";
-            case CardEffect.AddCurrentCost:
-                return $"Ôö¼Ó {data.effectValue} µãµ±Ç°·ÑÓÃ";
-            case CardEffect.IncreaseMaxCost:
-                return $"Ôö¼Ó {data.effectValue} µã×î´ó·ÑÓÃ";
-            default:
-                return "ÎÞÌØÊâÐ§¹û";
-        }
     }
 
-    // µã»÷¿¨ÅÆ£¨Ê¹ÓÃ¿¨ÅÆ£©
+    // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ£ï¿½Ê¹ï¿½Ã¿ï¿½ï¿½Æ£ï¿½
     public void OnPointerClick(PointerEventData eventData)
     {
         if (!_isDraggable) return;
-        Debug.Log($"Ê¹ÓÃ¿¨ÅÆ£º{_cardData.CardName}");
-        // Ìæ»»Ô­´úÂë
+        Debug.Log($"Ê¹ï¿½Ã¿ï¿½ï¿½Æ£ï¿½{_cardData.CardName}");
         if (CardEffectManager.Instance == null)
         {
-            Debug.LogError("CardEffectManager Î´³õÊ¼»¯£¡ÇëÔÚ³¡¾°ÖÐÌí¼Ó¸ÃÎïÌå²¢¹ÒÔØ½Å±¾");
+            Debug.LogError("CardEffectManager Î´ï¿½ï¿½Ê¼ï¿½ï¿½ï¿½ï¿½");
             return;
         }
         if (_cardData == null)
         {
-            Debug.LogError("¿¨ÅÆÊý¾Ý _cardData Îª¿Õ£¡Çë¼ì²é Init ·½·¨ÊÇ·ñÕýÈ·¸³Öµ");
+            Debug.LogError("ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ _cardData Îªï¿½Õ£ï¿½");
             return;
         }
 
         if (GameManager.Instance.SpendCost(_cardData.Cost))
         {
-            // ·ÑÓÃ×ã¹»£ºÖ´ÐÐÐ§¹û
-            Debug.Log($"Ê¹ÓÃ¿¨ÅÆ£º{_cardData.CardName}£¨ÏûºÄ{_cardData.Cost}·ÑÓÃ£©");
+            // Ö´ï¿½Ð¿ï¿½ï¿½ï¿½Ð§ï¿½ï¿½
+            Debug.Log($"Ê¹ï¿½Ã¿ï¿½ï¿½Æ£ï¿½{_cardData.CardName}ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½{_cardData.Cost}ï¿½ï¿½");
             CardEffectManager.Instance.ExecuteEffect(_cardData);
 
-            // ºóÐøÂß¼­£ºÒÆÖÁÆúÅÆ¶ÑµÈ
+            // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ³ï¿½ï¿½ï¿½ï¿½ï¿½Ö¹ Hand ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ã£ï¿½
+            var hand = GameManager.Instance.Hand;
+            if (hand != null)
+            {
+                hand.RemoveCard(this);
+            }
+
+            // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ¶Ñ²ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
             GameManager.Instance.DiscardPile.AddCard(this);
             Destroy(gameObject);
         }
         else
         {
-            // ·ÑÓÃ²»×ã£º¿ÉÌí¼ÓÌáÊ¾£¨ÈçUIÉÁË¸¡¢ÒôÐ§µÈ£©
-            Debug.Log("·ÑÓÃ²»×ã£¬ÎÞ·¨Ê¹ÓÃ¸Ã¿¨ÅÆ");
-            // Ê¾Àý£º²¥·Å´íÎóÌáÊ¾
-            // UIManager.Instance.ShowNotEnoughManaTip();
+            Debug.Log("ï¿½ï¿½ï¿½Ã²ï¿½ï¿½ã£¬ï¿½Þ·ï¿½Ê¹ï¿½Ã¸Ã¿ï¿½ï¿½ï¿½");
         }
-
     }
 
-    // ¿ªÊ¼ÍÏ×§
+    // ï¿½ï¿½Ê¼ï¿½ï¿½×§
     public void OnBeginDrag(PointerEventData eventData)
     {
         if (!_isDraggable) return;
         _originalParent = transform.parent;
-        transform.SetParent(transform.root); // ÁÙÊ±ÒÆµ½UI¸ù½Úµã£¬±ÜÃâ±»¸¸ÈÝÆ÷²Ã¼ô
-        transform.SetAsLastSibling(); // ÍÏ×§Ê±ÏÔÊ¾ÔÚ×îÉÏ²ã
-        cardImage.raycastTarget = false; // ±ÜÃâÍÏ×§Ê±´¥·¢µã»÷
+        transform.SetParent(transform.root);
+        transform.SetAsLastSibling();
+        cardImage.raycastTarget = false;
     }
 
-    // ÍÏ×§ÖÐ
     public void OnDrag(PointerEventData eventData)
     {
         if (!_isDraggable) return;
-        transform.position = Input.mousePosition; // ¸úËæÊó±êÒÆ¶¯
+        transform.position = Input.mousePosition;
     }
 
-    // ½áÊøÍÏ×§
     public void OnEndDrag(PointerEventData eventData)
     {
         if (!_isDraggable) return;
-        transform.SetParent(_originalParent); // ·Å»ØÔ­¸¸ÈÝÆ÷
+        transform.SetParent(_originalParent);
         cardImage.raycastTarget = true;
-        // ÖØÖÃÎ»ÖÃ£¨ÊÖÅÆ»á×Ô¶¯ÅÅÁÐ£¬ºóÐøÊµÏÖ£©
         GameManager.Instance.Hand.RearrangeCards();
     }
 
-    // »ñÈ¡¿¨ÅÆÊý¾Ý
     public CardData GetCardData() => _cardData;
 }

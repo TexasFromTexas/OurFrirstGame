@@ -4,44 +4,44 @@ using UnityEngine;
 public class Deck : MonoBehaviour
 {
     public static Deck Instance;
-    // ³õÊ¼¿¨ÅÆÁÐ±í£¨ÔÚInspectorÖÐ¸³Öµ£©
+    // ï¿½ï¿½Ê¼ï¿½ï¿½ï¿½ï¿½ï¿½Ð±ï¿½ï¿½ï¿½ï¿½Inspectorï¿½Ð¸ï¿½Öµï¿½ï¿½
     public List<CardData> initialCards;
-    // Êµ¼ÊÅÆ¿â£¨´æ´¢¿¨ÅÆÊý¾Ý£¬Ï´ÅÆÓÃ£©
+    // Êµï¿½ï¿½ï¿½Æ¿â£¨ï¿½æ´¢ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ý£ï¿½Ï´ï¿½ï¿½ï¿½Ã£ï¿½
     private List<CardData> _cardPool = new List<CardData>();
 
 
     private void Awake()
     {
-        // µ¥Àý³õÊ¼»¯
+        // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê¼ï¿½ï¿½
         if (Instance == null)
         {
             Instance = this;
-            // ³õÊ¼»¯ÅÆ¿â£º½«³õÊ¼¿¨ÅÆÌí¼Óµ½ÅÆ³Ø
+            // ï¿½ï¿½Ê¼ï¿½ï¿½ï¿½Æ¿â£ºï¿½ï¿½ï¿½ï¿½Ê¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Óµï¿½ï¿½Æ³ï¿½
             if (initialCards != null)
             {
-                // ¹ýÂËµô¿ÉÄÜµÄ null ÌõÄ¿£¬±ÜÃâÔËÐÐÊ±È¡³ö null Òý·¢ NRE
+                // ï¿½ï¿½ï¿½Ëµï¿½ï¿½ï¿½Üµï¿½ null ï¿½ï¿½Ä¿ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê±È¡ï¿½ï¿½ null ï¿½ï¿½ï¿½ï¿½ NRE
                 int before = initialCards.Count;
                 var valid = initialCards.FindAll(c => c != null);
                 _cardPool.AddRange(valid);
                 if (valid.Count != before)
                 {
-                    Debug.LogWarning("Deck£ºinitialCards ÖÐ´æÔÚ null ÌõÄ¿£¬ÒÑ×Ô¶¯¹ýÂË¡£");
+                    Debug.LogWarning("Deckï¿½ï¿½initialCards ï¿½Ð´ï¿½ï¿½ï¿½ null ï¿½ï¿½Ä¿ï¿½ï¿½ï¿½ï¿½ï¿½Ô¶ï¿½ï¿½ï¿½ï¿½Ë¡ï¿½");
                 }
-                ShuffleDeck(); // ³õÊ¼Ï´ÅÆ
+                ShuffleDeck(); // ï¿½ï¿½Ê¼Ï´ï¿½ï¿½
             }
             else
             {
-                Debug.LogWarning("Deck£º³õÊ¼¿¨ÅÆÁÐ±í£¨initialCards£©Î´¸³Öµ£¡");
+                Debug.LogWarning("Deckï¿½ï¿½ï¿½ï¿½Ê¼ï¿½ï¿½ï¿½ï¿½ï¿½Ð±ï¿½ï¿½initialCardsï¿½ï¿½Î´ï¿½ï¿½Öµï¿½ï¿½");
             }
         }
         else
         {
-            Destroy(gameObject); // È·±£³¡¾°ÖÐÖ»ÓÐÒ»¸öDeckÊµÀý
+            Destroy(gameObject); // È·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö»ï¿½ï¿½Ò»ï¿½ï¿½DeckÊµï¿½ï¿½
         }
     }
 
 
-    // Ï´ÅÆ£¨Fisher-Yates Ï´ÅÆËã·¨£¬¹«Æ½Ëæ»ú£©
+    // Ï´ï¿½Æ£ï¿½Fisher-Yates Ï´ï¿½ï¿½ï¿½ã·¨ï¿½ï¿½ï¿½ï¿½Æ½ï¿½ï¿½ï¿½ï¿½ï¿½
     public void ShuffleDeck()
     {
         int n = _cardPool.Count;
@@ -51,58 +51,58 @@ public class Deck : MonoBehaviour
             int k = Random.Range(0, n + 1);
             (_cardPool[k], _cardPool[n]) = (_cardPool[n], _cardPool[k]);
         }
-        Debug.Log("ÅÆ¿âÒÑÏ´ÅÆ");
+        Debug.Log("ï¿½Æ¿ï¿½ï¿½ï¿½Ï´ï¿½ï¿½");
     }
 
-    // ³éÅÆ£¨·µ»Ø¿¨ÅÆÊµÀý£¬Ìí¼Óµ½ÊÖÅÆ£©
+    // ï¿½ï¿½ï¿½Æ£ï¿½ï¿½ï¿½ï¿½Ø¿ï¿½ï¿½ï¿½Êµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Óµï¿½ï¿½ï¿½ï¿½Æ£ï¿½
     public Card DrawCard()
     {
-        // ÇåÀí¿ÉÄÜµÄ null ÌõÄ¿£¨·ÀÖ¹ºóÐø·ÃÎÊ null.CardName£©
+        // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Üµï¿½ null ï¿½ï¿½Ä¿ï¿½ï¿½ï¿½ï¿½Ö¹ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ null.CardNameï¿½ï¿½
         _cardPool.RemoveAll(d => d == null);
 
-        // ÅÆ¿âÎª¿ÕÊ±£¬½«ÆúÅÆ¶ÑÏ´ÅÆ¼ÓÈëÅÆ¿â
+        // ï¿½Æ¿ï¿½Îªï¿½ï¿½Ê±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ¶ï¿½Ï´ï¿½Æ¼ï¿½ï¿½ï¿½ï¿½Æ¿ï¿½
         if (_cardPool.Count == 0)
         {
-            Debug.Log("ÅÆ¿âÎª¿Õ£¬³¢ÊÔ´ÓÆúÅÆ¶Ñ²¹³ä");
-            // ÔÚµ÷ÓÃ²¹³äÇ°È·±£ GameManager ¿ÉÓÃ
+            Debug.Log("ï¿½Æ¿ï¿½Îªï¿½Õ£ï¿½ï¿½ï¿½ï¿½Ô´ï¿½ï¿½ï¿½ï¿½Æ¶Ñ²ï¿½ï¿½ï¿½");
+            // ï¿½Úµï¿½ï¿½Ã²ï¿½ï¿½ï¿½Ç°È·ï¿½ï¿½ GameManager ï¿½ï¿½ï¿½ï¿½
             if (GameManager.Instance == null)
             {
-                Debug.LogError("Deck£ºÎÞ·¨²¹³ä£¬GameManager.Instance Îª null£¡");
+                Debug.LogError("Deckï¿½ï¿½ï¿½Þ·ï¿½ï¿½ï¿½ï¿½ä£¬GameManager.Instance Îª nullï¿½ï¿½");
                 return null;
             }
             RefillFromDiscardPile();
-            // ÔÙ´ÎÒÆ³ý null ²¢¼ì²é
+            // ï¿½Ù´ï¿½ï¿½Æ³ï¿½ null ï¿½ï¿½ï¿½ï¿½ï¿½
             _cardPool.RemoveAll(d => d == null);
             if (_cardPool.Count == 0)
             {
-                Debug.Log("ÎÞÅÆ¿É³é£¡");
+                Debug.Log("ï¿½ï¿½ï¿½Æ¿É³é£¡");
                 return null;
             }
         }
 
-        // È¡³öÅÆ³ØµÚÒ»ÕÅÅÆ
+        // È¡ï¿½ï¿½ï¿½Æ³Øµï¿½Ò»ï¿½ï¿½ï¿½ï¿½
         CardData drawnData = _cardPool[0];
         _cardPool.RemoveAt(0);
 
         if (drawnData == null)
         {
-            Debug.LogError("Deck£º³éµ½µÄ CardData Îª null£¬Ìø¹ý²¢³¢ÊÔÏÂÒ»ÕÅ¡£");
-            return DrawCard(); // µÝ¹é³¢ÊÔÏÂÒ»ÕÅ£¨°²È«£¬ÒòÎªÎÒÃÇÒÑÇåÀí null£©
+            Debug.LogError("Deckï¿½ï¿½ï¿½éµ½ï¿½ï¿½ CardData Îª nullï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ò»ï¿½Å¡ï¿½");
+            return DrawCard(); // ï¿½Ý¹é³¢ï¿½ï¿½ï¿½ï¿½Ò»ï¿½Å£ï¿½ï¿½ï¿½È«ï¿½ï¿½ï¿½ï¿½Îªï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ nullï¿½ï¿½
         }
 
-        // ÊµÀý»¯¿¨ÅÆ²¢Ìí¼Óµ½ÊÖÅÆ
+        // Êµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ²ï¿½ï¿½ï¿½Óµï¿½ï¿½ï¿½ï¿½ï¿½
         if (GameManager.Instance == null)
         {
-            Debug.LogError("Deck£ºGameManager.Instance Îª null£¡");
+            Debug.LogError("Deckï¿½ï¿½GameManager.Instance Îª nullï¿½ï¿½");
             return null;
         }
         if (GameManager.Instance.CardPrefab == null)
         {
-            Debug.LogError("Deck£ºGameManager µÄ CardPrefab Î´¸³Öµ£¡");
+            Debug.LogError("Deckï¿½ï¿½GameManager ï¿½ï¿½ CardPrefab Î´ï¿½ï¿½Öµï¿½ï¿½");
             return null;
         }
 
-        // Èç¹ûÊÇ UI ¿¨ÅÆ£¬ÍÆ¼ö°ÑÊµÀý·ÅÈëÊÖÅÆ¸¸ÎïÌå£¬È·±£ Canvas/RectTransform Õý³£ÏÔÊ¾
+        // ï¿½ï¿½ï¿½ï¿½ï¿½ UI ï¿½ï¿½ï¿½Æ£ï¿½ï¿½Æ¼ï¿½ï¿½ï¿½Êµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ¸ï¿½ï¿½ï¿½ï¿½å£¬È·ï¿½ï¿½ Canvas/RectTransform ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê¾
         Transform parent = GameManager.Instance.handTransform;
         GameObject cardObj;
         if (parent != null)
@@ -117,7 +117,7 @@ public class Deck : MonoBehaviour
         string safeName = string.IsNullOrEmpty(drawnData.CardName) ? "Unknown" : drawnData.CardName;
         cardObj.name = $"Card_{safeName}";
 
-        // ¶Ô UI prefab È·±£Ëõ·ÅÕýÈ·£¨±ÜÃâÔ¤ÖÆÌå±£´æÁË·Ç 1 µÄËõ·Å£©
+        // ï¿½ï¿½ UI prefab È·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ô¤ï¿½ï¿½ï¿½å±£ï¿½ï¿½ï¿½Ë·ï¿½ 1 ï¿½ï¿½ï¿½ï¿½ï¿½Å£ï¿½
         cardObj.transform.localScale = Vector3.one;
 
         Card card = cardObj.GetComponent<Card>();
@@ -127,38 +127,38 @@ public class Deck : MonoBehaviour
         }
         else
         {
-            Debug.LogError($"Deck£º¿¨ÅÆÔ¤ÖÆÌå {cardObj.name} Î´¹ÒÔØ Card ½Å±¾£¡");
+            Debug.LogError($"Deckï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ô¤ï¿½ï¿½ï¿½ï¿½ {cardObj.name} Î´ï¿½ï¿½ï¿½ï¿½ Card ï¿½Å±ï¿½ï¿½ï¿½");
             Destroy(cardObj);
             return null;
         }
 
-        Debug.Log($"³éÅÆ£º{drawnData.CardName}");
+        Debug.Log($"ï¿½ï¿½ï¿½Æ£ï¿½{drawnData.CardName}");
         return card;
     }
 
-    // ´ÓÆúÅÆ¶Ñ²¹³äÅÆ¿â
+    // ï¿½ï¿½ï¿½ï¿½ï¿½Æ¶Ñ²ï¿½ï¿½ï¿½ï¿½Æ¿ï¿½
     private void RefillFromDiscardPile()
     {
         if (GameManager.Instance == null)
         {
-            Debug.LogError("RefillFromDiscardPile£ºGameManager.Instance Îª null£¬ÎÞ·¨²¹³äÅÆ¿â¡£");
+            Debug.LogError("RefillFromDiscardPileï¿½ï¿½GameManager.Instance Îª nullï¿½ï¿½ï¿½Þ·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ¿â¡£");
             return;
         }
 
         if (GameManager.Instance.DiscardPile == null)
         {
-            Debug.LogWarning("RefillFromDiscardPile£ºDiscardPile Îª null£¬ÎÞ·¨²¹³äÅÆ¿â¡£");
+            Debug.LogWarning("RefillFromDiscardPileï¿½ï¿½DiscardPile Îª nullï¿½ï¿½ï¿½Þ·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ¿â¡£");
             return;
         }
 
         var discarded = GameManager.Instance.DiscardPile.GetAllCards();
         if (discarded == null || discarded.Count == 0)
         {
-            Debug.Log("RefillFromDiscardPile£ºÆúÅÆ¶ÑÎª¿Õ»ò·µ»Ø null¡£");
+            Debug.Log("RefillFromDiscardPileï¿½ï¿½ï¿½ï¿½ï¿½Æ¶ï¿½Îªï¿½Õ»ò·µ»ï¿½ nullï¿½ï¿½");
             return;
         }
 
-        // Ö»¼ÓÈë·Ç null µÄ¿¨ÅÆÊý¾Ý
+        // Ö»ï¿½ï¿½ï¿½ï¿½ï¿½ null ï¿½Ä¿ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
         int added = 0;
         foreach (CardData data in discarded)
         {
@@ -169,28 +169,28 @@ public class Deck : MonoBehaviour
             }
         }
 
-        // Çå¿ÕÆúÅÆ¶Ñ²¢Ï´ÅÆ£¨Ö»ÔÚÈ·ÊµÌí¼ÓÁË¿¨ÅÆÊ±Ï´ÅÆ£©
+        // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ¶Ñ²ï¿½Ï´ï¿½Æ£ï¿½Ö»ï¿½ï¿½È·Êµï¿½ï¿½ï¿½ï¿½Ë¿ï¿½ï¿½ï¿½Ê±Ï´ï¿½Æ£ï¿½
         GameManager.Instance.DiscardPile.ClearPile();
 
         if (added > 0)
         {
             ShuffleDeck();
-            Debug.Log($"´ÓÆúÅÆ¶Ñ²¹³äÁË {added} ÕÅ¿¨ÅÆµ½ÅÆ¿â");
+            Debug.Log($"ï¿½ï¿½ï¿½ï¿½ï¿½Æ¶Ñ²ï¿½ï¿½ï¿½ï¿½ï¿½ {added} ï¿½Å¿ï¿½ï¿½Æµï¿½ï¿½Æ¿ï¿½");
         }
     }
 
-    // ÏòÅÆ¿âÌí¼ÓÐÂ¿¨ÅÆ£¨ÈçÉÌµê¹ºÂò¡¢½±Àø£©
+    // ï¿½ï¿½ï¿½Æ¿ï¿½ï¿½ï¿½ï¿½ï¿½Â¿ï¿½ï¿½Æ£ï¿½ï¿½ï¿½ï¿½Ìµê¹ºï¿½ò¡¢½ï¿½ï¿½ï¿½ï¿½ï¿½
     public void AddCardToDeck(CardData newCard)
     {
         if (newCard == null)
         {
-            Debug.LogWarning("AddCardToDeck: ÊÔÍ¼Ìí¼Ó null ¿¨ÅÆ£¬ÒÑºöÂÔ¡£");
+            Debug.LogWarning("AddCardToDeck: ï¿½ï¿½Í¼ï¿½ï¿½ï¿½ null ï¿½ï¿½ï¿½Æ£ï¿½ï¿½Ñºï¿½ï¿½Ô¡ï¿½");
             return;
         }
         _cardPool.Add(newCard);
-        Debug.Log($"Ìí¼Ó¿¨ÅÆµ½ÅÆ¿â£º{newCard.CardName}");
+        Debug.Log($"ï¿½ï¿½Ó¿ï¿½ï¿½Æµï¿½ï¿½Æ¿â£º{newCard.CardName}");
     }
 
-    // »ñÈ¡ÅÆ¿âÊ£Óà¿¨ÅÆÊý
+    // ï¿½ï¿½È¡ï¿½Æ¿ï¿½Ê£ï¿½à¿¨ï¿½ï¿½ï¿½ï¿½
     public int GetRemainingCards() => _cardPool.Count;
 }

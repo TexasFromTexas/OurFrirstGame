@@ -2,31 +2,31 @@ using UnityEngine;
 
 public class GameManager : MonoBehaviour
 {
-    // µ¥ÀýÊµÀý
+    // ï¿½ï¿½ï¿½ï¿½Êµï¿½ï¿½
     public static GameManager Instance;
 
-    [Header("ºËÐÄÄ£¿éÒýÓÃ")]
+    [Header("ï¿½ï¿½ï¿½ï¿½Ä£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½")]
     public Deck Deck;
     public Hand Hand;
     public Pile DiscardPile;
     public GameObject Player;
 
-    [Header("Ô¤ÖÆÌåÒýÓÃ")]
+    [Header("Ô¤ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½")]
     public GameObject CardPrefab;
 
-    [Header("UI¸¸ÈÝÆ÷")]
-    public Transform handTransform; // ÊÖÅÆµÄ¸¸¶ÔÏó£¨UGUIµÄCanvas×ÓÎïÌå£©
+    [Header("UIï¿½ï¿½ï¿½ï¿½ï¿½ï¿½")]
+    public Transform handTransform; // ï¿½ï¿½ï¿½ÆµÄ¸ï¿½ï¿½ï¿½ï¿½ï¿½UGUIï¿½ï¿½Canvasï¿½ï¿½ï¿½ï¿½ï¿½å£©
 
-    [Header("»ØºÏÉèÖÃ")]
-    public int defaultDrawCount = 5; // ÔÚ Inspector ÖÐµ÷ÕûÄ¬ÈÏ³éÅÆÊý
+    [Header("ï¿½Øºï¿½ï¿½ï¿½ï¿½ï¿½")]
+    public int defaultDrawCount = 5; // ï¿½ï¿½ Inspector ï¿½Ðµï¿½ï¿½ï¿½Ä¬ï¿½Ï³ï¿½ï¿½ï¿½ï¿½ï¿½
 
-    [Header("·ÑÓÃÅäÖÃ")]
-    public int maxCost = 3; // ×î´ó·ÑÓÃ£¨Ã¿»ØºÏÉÏÏÞ£©
-    public int currentCost;  // µ±Ç°¿ÉÓÃ·ÑÓÃ
+    [Header("ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½")]
+    public int maxCost = 3; // ï¿½ï¿½ï¿½ï¿½ï¿½Ã£ï¿½Ã¿ï¿½Øºï¿½ï¿½ï¿½ï¿½Þ£ï¿½
+    public int currentCost;  // ï¿½ï¿½Ç°ï¿½ï¿½ï¿½Ã·ï¿½ï¿½ï¿½
 
     private void Awake()
     {
-        // µ¥Àý³õÊ¼»¯
+        // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê¼ï¿½ï¿½
         if (Instance == null)
             Instance = this;
         else
@@ -36,108 +36,113 @@ public class GameManager : MonoBehaviour
     public void ResetCost()
     {
         currentCost = maxCost;
-        Debug.Log($"»ØºÏ¿ªÊ¼£¬·ÑÓÃÖØÖÃÎª£º{currentCost}/{maxCost}");
-        // ¿ÉÑ¡£º¸üÐÂUIÏÔÊ¾·ÑÓÃ£¨µ÷ÓÃUIË¢ÐÂ·½·¨£©
+        Debug.Log($"ï¿½ØºÏ¿ï¿½Ê¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Îªï¿½ï¿½{currentCost}/{maxCost}");
+        // ï¿½ï¿½Ñ¡ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½UIï¿½ï¿½Ê¾ï¿½ï¿½ï¿½Ã£ï¿½ï¿½ï¿½ï¿½ï¿½UIË¢ï¿½Â·ï¿½ï¿½ï¿½ï¿½ï¿½
         UpdateCostUI();
     }
 
-    // ¿Û³ý·ÑÓÃ£¨·µ»ØÊÇ·ñ¿Û³ý³É¹¦£©
+    // ï¿½Û³ï¿½ï¿½ï¿½ï¿½Ã£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ç·ï¿½Û³ï¿½ï¿½É¹ï¿½ï¿½ï¿½
     public bool SpendCost(int cost)
     {
         if (currentCost >= cost)
         {
             currentCost -= cost;
-            Debug.Log($"¿Û³ý·ÑÓÃ£º{cost}£¬Ê£Óà·ÑÓÃ£º{currentCost}");
-            UpdateCostUI(); // ¸üÐÂUI
+            Debug.Log($"ï¿½Û³ï¿½ï¿½ï¿½ï¿½Ã£ï¿½{cost}ï¿½ï¿½Ê£ï¿½ï¿½ï¿½ï¿½Ã£ï¿½{currentCost}");
+            UpdateCostUI(); // ï¿½ï¿½ï¿½ï¿½UI
             return true;
         }
         else
         {
-            Debug.LogWarning($"·ÑÓÃ²»×ã£¡µ±Ç°£º{currentCost}£¬ÐèÒª£º{cost}");
+            Debug.LogWarning($"ï¿½ï¿½ï¿½Ã²ï¿½ï¿½ã£¡ï¿½ï¿½Ç°ï¿½ï¿½{currentCost}ï¿½ï¿½ï¿½ï¿½Òªï¿½ï¿½{cost}");
             return false;
         }
     }
 
-    // Ôö¼Ó·ÑÓÃ£¨¿ÉÑ¡£¬ÈçÍ¨¹ý¿¨ÅÆ/µÀ¾ßÁÙÊ±Ôö¼Ó£©
     public void AddCost(int amount)
     {
-        currentCost = Mathf.Min(currentCost + amount, maxCost); // ²»³¬¹ý×î´ó·ÑÓÃ
+        currentCost = Mathf.Min(currentCost + amount, maxCost); // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
         UpdateCostUI();
     }
 
-    // ¸üÐÂ·ÑÓÃUIÏÔÊ¾£¨Ðè½áºÏÄãµÄUIÂß¼­ÊµÏÖ£©
     public void UpdateCostUI()
     {
-        // µ÷ÓÃCostUIManager¸üÐÂUI
         if (CostUIManager.Instance != null)
         {
             CostUIManager.Instance.UpdateCostUI(currentCost, maxCost);
         }
-        else
-        {
-           // CostUIManager ²»´æÔÚÊ±²»´òÓ¡¹ý¶àÈÕÖ¾£¬±ÜÃâÔëÉù
-        }
     }
 
-    // ÎÞ²ÎÖØÔØ£ºÊ¹ÓÃ Inspector ÖÐµÄÄ¬ÈÏÖµ
     public void StartTurn() => StartTurn(defaultDrawCount);
 
-    // ¿ªÊ¼»ØºÏ£º³éÖ¸¶¨ÊýÁ¿µÄÅÆ£¨´øÕï¶ÏÈÕÖ¾£©
     public void StartTurn(int drawCount)
     {
-        Debug.Log($"=== »ØºÏ¿ªÊ¼ === drawCount={drawCount}");
+        Debug.Log($"=== ï¿½ØºÏ¿ï¿½Ê¼ === drawCount={drawCount}");
+        var gmInst = Instance;
+        Debug.Log($"GameManager.Instance != null: {gmInst != null}");
+        Debug.Log($"Deck reference set: {Deck != null} | Deck.Instance: {Deck?.GetRemainingCards() ?? -1}");
+        if (Deck != null)
+        {
+            Debug.Log($"Deck.initialCards count: {Deck.initialCards?.Count ?? -1} | Deck pool: {Deck.GetRemainingCards()}");
+        }
 
         if (Instance == null)
         {
-            Debug.LogError("StartTurn µ÷ÓÃÊ± GameManager.Instance Îª null¡£È·±£ GameManager ÒÑÔÚ³¡¾°ÖÐ²¢ÆôÓÃ¡£");
+            Debug.LogError("StartTurn ï¿½ï¿½ï¿½ï¿½Ê± GameManager.Instance Îª nullï¿½ï¿½È·ï¿½ï¿½ GameManager ï¿½ï¿½ï¿½Ú³ï¿½ï¿½ï¿½ï¿½Ð²ï¿½ï¿½ï¿½ï¿½Ã¡ï¿½");
             return;
         }
-
         if (Deck == null)
         {
-            Debug.LogError("StartTurn£ºDeck ÒýÓÃÎª null¡£ÇëÔÚ Inspector ½«´øÓÐ Deck ½Å±¾µÄ GameObject ÍÏµ½ GameManager µÄ Deck ×Ö¶ÎÉÏ¡£");
+            Debug.LogError("StartTurnï¿½ï¿½Deck ï¿½ï¿½ï¿½ï¿½Îª nullï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Inspector ï¿½ï¿½ Deckï¿½ï¿½");
             return;
         }
-
         if (Hand == null)
         {
-            Debug.LogError("StartTurn£ºHand ÒýÓÃÎª null¡£ÇëÔÚ Inspector °ó¶¨ Hand¡£");
+            Debug.LogError("StartTurnï¿½ï¿½Hand ï¿½ï¿½ï¿½ï¿½Îª nullï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Inspector ï¿½ï¿½ Handï¿½ï¿½");
             return;
         }
 
-        GameManager.Instance.ResetCost(); // ÖØÖÃ·ÑÓÃ
+        ResetCost(); // ï¿½ï¿½ï¿½Ó¡ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö¾
 
         for (int i = 0; i < drawCount; i++)
         {
-            Debug.Log($"StartTurn: ³¢ÊÔ³éÅÆ i={i}");
-            Card drawnCard = null;
-            try
-            {
-                drawnCard = Deck.DrawCard();
-            }
-            catch (System.Exception ex)
-            {
-                Debug.LogError($"StartTurn: µ÷ÓÃ Deck.DrawCard() Ê±Å×³öÒì³££º{ex.Message}\n{ex.StackTrace}");
-                return;
-            }
-
+            Debug.Log($"StartTurn: ï¿½ï¿½ï¿½Ô³ï¿½ï¿½ï¿½ i={i}");
+            Card drawnCard = Deck.DrawCard();
+            Debug.Log($"StartTurn: DrawCard ï¿½ï¿½ï¿½ï¿½ {(drawnCard == null ? "null" : drawnCard.name)}");
             if (drawnCard == null)
             {
-                Debug.LogWarning($"StartTurn: µÚ {i} ´Î³éÅÆ·µ»Ø null£¨¿ÉÄÜÅÆ¿âÎª¿Õ»òÔ¤ÖÆÌå/½Å±¾ÅäÖÃÓÐÎó£©");
+                Debug.LogWarning($"StartTurn: ï¿½ï¿½ {i} ï¿½Î³ï¿½ï¿½Æ·ï¿½ï¿½ï¿½ nullï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ¿ï¿½Îªï¿½Õ»ï¿½Ô¤ï¿½ï¿½ï¿½ï¿½/ï¿½Å±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½");
             }
             else
             {
                 Hand.AddCard(drawnCard);
-                Debug.Log($"StartTurn: µÚ {i} ´Î³éµ½¿¨Æ¬ {drawnCard.name}");
+                Debug.Log($"StartTurn: ï¿½ï¿½ {i} ï¿½Î³éµ½ï¿½ï¿½Æ¬ {drawnCard.name}");
             }
         }
+
+        // ï¿½ï¿½Ï£ï¿½ï¿½Ð³ï¿½ handTransform / HandPanel ï¿½Âµï¿½ï¿½Ó¶ï¿½ï¿½ï¿½
+        if (handTransform != null)
+        {
+            Debug.Log($"StartTurn: handTransform childCount = {handTransform.childCount}");
+            for (int i = 0; i < handTransform.childCount; i++)
+            {
+                Debug.Log($" - hand child[{i}] = {handTransform.GetChild(i).name}");
+            }
+        }
+        if (Hand != null && Hand.HandPanel != null)
+        {
+            Debug.Log($"StartTurn: Hand.HandPanel childCount = {Hand.HandPanel.childCount}");
+            for (int i = 0; i < Hand.HandPanel.childCount; i++)
+            {
+                Debug.Log($" - HandPanel child[{i}] = {Hand.HandPanel.GetChild(i).name}");
+            }
+        }
+
+        Debug.Log("StartTurn: ï¿½ï¿½ï¿½ï¿½Ñ­ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½");
     }
 
-    // ½áÊø»ØºÏ£ºÆúÖÃËùÓÐÊÖÅÆ£¬×¼±¸ÏÂ»ØºÏ
     public void EndTurn()
     {
-        Debug.Log("=== »ØºÏ½áÊø ===");
+        Debug.Log("=== ï¿½ØºÏ½ï¿½ï¿½ï¿½ ===");
         Hand.DiscardAllCards();
-        // ÏÂ»ØºÏ¿Éµ÷ÓÃStartTurn()¿ªÊ¼
     }
 }

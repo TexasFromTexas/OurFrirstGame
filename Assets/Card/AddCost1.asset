@@ -16,7 +16,7 @@ MonoBehaviour:
   Description: "\u591F\u5417\uFF0C\u5B69\u5B50\uFF08+1\u8D39\u7528\uFF09"
   Cost: 0
   cardType: 1
-  CardSprite: {fileID: 0}
+  CardSprite: {fileID: 21300000, guid: d94291e54a5b3f44aa96eb37a47eea45, type: 3}
   effectType: 7
   effectValue: 1
   effectDuration: 0

@@ -12,7 +12,7 @@ public class CardEffectManager : MonoBehaviour
         else Destroy(gameObject);
     }
 
-    // ¶ÔÍâµ÷ÓÃµÄÍ³Ò»½Ó¿Ú£ºÖ´ÐÐ´«ÈëµÄ¿¨ÅÆÐ§¹û
+    // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ãµï¿½Í³Ò»ï¿½Ó¿Ú£ï¿½Ö´ï¿½Ð´ï¿½ï¿½ï¿½Ä¿ï¿½ï¿½ï¿½Ð§ï¿½ï¿½
     public void ExecuteEffect(CardData cardData)
     {
         if (cardData == null)
@@ -21,35 +21,73 @@ public class CardEffectManager : MonoBehaviour
             return;
         }
 
-        var player = GameManager.Instance?.Player;
-        if (player == null)
+        var gm = GameManager.Instance;
+        if (gm == null)
         {
-            Debug.LogError("ExecuteEffect: Î´ÕÒµ½ Player£¨GameManager.Instance.Player Îª null£©");
+            Debug.LogError("ExecuteEffect: GameManager.Instance Îª nullï¿½ï¿½ï¿½Þ·ï¿½Ö´ï¿½Ð¿ï¿½ï¿½ï¿½Ð§ï¿½ï¿½ï¿½ï¿½");
             return;
         }
 
+        GameObject player = gm.Player;
+        if (player == null)
+        {
+            player = GameObject.FindWithTag("Player");
+            if (player != null)
+                Debug.LogWarning("ExecuteEffect: GameManager.Player Î´ï¿½ï¿½ï¿½Ã£ï¿½ï¿½ï¿½Í¨ï¿½ï¿½ Tag ï¿½Òµï¿½ï¿½ï¿½Ò¶ï¿½ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½ï¿½Ë£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ GameManager Inspector ï¿½ï¿½Öµ Player ï¿½Ö¶Î¡ï¿½");
+            else
+            {
+                Debug.LogError("ExecuteEffect: Î´ï¿½Òµï¿½ Playerï¿½ï¿½GameManager.Player Îª nullï¿½ï¿½ï¿½Ò³ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Tag Îª \"Player\" ï¿½Ä¶ï¿½ï¿½ï¿½");
+                return;
+            }
+        }
+
+        // ï¿½ï¿½Ï£ï¿½ï¿½ï¿½Ó¡ï¿½ï¿½Òºï¿½ï¿½ï¿½ï¿½×´Ì¬ï¿½ï¿½ï¿½ï¿½ï¿½Úµï¿½ï¿½Ô£ï¿½
         var bpm = player.GetComponent<BallParameterManager>();
         var health = player.GetComponent<HealthSystem_New>();
         var speedComp = player.GetComponent<SpeedAndSize>();
 
+        Debug.Log($"ExecuteEffect: Ä¿ï¿½ï¿½ï¿½ï¿½ï¿½={player.name} | BallParam={(bpm != null)} | Health={(health != null)} | SpeedAndSize={(speedComp != null)} | effect={cardData.effectType}");
+
         switch (cardData.effectType)
         {
             case CardData.CardEffect.AddHealth:
-                if (bpm != null && health != null)
-                    bpm.CurrentHealth = health.GetCurrentHealth() + (int)cardData.effectValue;
+                if (health != null)
+                {
+                    int newHp = health.GetCurrentHealth() + (int)cardData.effectValue;
+                    health.SetCurrentHealth(newHp);
+                    Debug.Log($"AddHealth: ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Îª {newHp}ï¿½ï¿½ï¿½ï¿½ {cardData.effectValue} ï¿½ï¿½ï¿½Ó£ï¿½");
+                    // Í¬ï¿½ï¿½ï¿½ï¿½Ê¾ï¿½ï¿½ BallParameterManager ï¿½ï¿½ inspector Öµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ú£ï¿½
+                    if (bpm != null) bpm.CurrentHealth = health.GetCurrentHealth();
+                }
+                else if (bpm != null)
+                {
+                    bpm.CurrentHealth += (int)cardData.effectValue;
+                    Debug.Log($"AddHealth (fallback via BPM): bpm.CurrentHealth -> {bpm.CurrentHealth}");
+                }
                 break;
 
             case CardData.CardEffect.ReduceHealth:
-                if (bpm != null && health != null)
-                    bpm.CurrentHealth = health.GetCurrentHealth() - (int)cardData.effectValue;
+                if (health != null)
+                {
+                    int newHp = health.GetCurrentHealth() - (int)cardData.effectValue;
+                    health.SetCurrentHealth(newHp);
+                    Debug.Log($"ReduceHealth: ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Îª {newHp}ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ {cardData.effectValue}ï¿½ï¿½");
+                    if (bpm != null) bpm.CurrentHealth = health.GetCurrentHealth();
+                }
+                else if (bpm != null)
+                {
+                    bpm.CurrentHealth -= (int)cardData.effectValue;
+                    Debug.Log($"ReduceHealth (fallback via BPM): bpm.CurrentHealth -> {bpm.CurrentHealth}");
+                }
                 break;
 
             case CardData.CardEffect.EnlargeBodytype:
                 {
-                    // ½« effectValue ÊÓÎª´óÐ¡ÔöÁ¿£¨Óë transform.localScale µ¥Î»Ò»ÖÂ£©
                     float cur = player.transform.localScale.x;
                     float target = Mathf.Max(0.1f, cur + cardData.effectValue);
                     if (bpm != null) bpm.BallSize = target;
+                    else player.transform.localScale = Vector3.one * target;
+                    Debug.Log($"EnlargeBodytype: Ä¿ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ -> {target}");
                 }
                 break;
 
@@ -58,14 +96,16 @@ public class CardEffectManager : MonoBehaviour
                     float cur = player.transform.localScale.x;
                     float target = Mathf.Max(0.1f, cur - cardData.effectValue);
                     if (bpm != null) bpm.BallSize = target;
+                    else player.transform.localScale = Vector3.one * target;
+                    Debug.Log($"ShrinkBodytype: Ä¿ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ -> {target}");
                 }
                 break;
 
             case CardData.CardEffect.IncreaseSpeed:
                 if (speedComp != null)
                 {
-                    // Ê¹ÓÃ¹«¿ª·½·¨ÐÞ¸Ä speed multiplier
                     speedComp.ModifyDamageMultiplier(cardData.effectValue);
+                    Debug.Log($"IncreaseSpeed: DamageMultiplier -> {speedComp.DamageMultiplier}");
                 }
                 break;
 
@@ -73,52 +113,55 @@ public class CardEffectManager : MonoBehaviour
                 if (speedComp != null)
                 {
                     speedComp.ModifyDamageMultiplier(-cardData.effectValue);
+                    Debug.Log($"DecreaseSpeed: DamageMultiplier -> {speedComp.DamageMultiplier}");
                 }
                 break;
 
-            case CardEffect.IncreaseMaxCost:
+            case CardData.CardEffect.IncreaseMaxCost:
                 IncreaseMaxCost((int)cardData.effectValue);
                 break;
 
             case CardData.CardEffect.AddCurrentCost:
                 AddCurrentCost((int)cardData.effectValue);
                 break;
+
             case CardData.CardEffect.DrawCards:
                 ExecuteDrawCardEffect((int)cardData.effectValue);
                 break;
 
             case CardData.CardEffect.None:
             default:
-                Debug.Log($"Î´´¦ÀíµÄ¿¨ÅÆÐ§¹û£º{cardData.effectType}");
+                Debug.Log($"Î´ï¿½ï¿½ï¿½ï¿½Ä¿ï¿½ï¿½ï¿½Ð§ï¿½ï¿½ï¿½ï¿½{cardData.effectType}");
                 break;
         }
     }
+
     private void AddCurrentCost(int amount)
     {
-        if (GameManager.Instance == null) return;
-        GameManager.Instance.currentCost += amount;
-        // È·±£²»³¬¹ý×î´ó·ÑÓÃ
-        GameManager.Instance.currentCost = Mathf.Min(GameManager.Instance.currentCost, GameManager.Instance.maxCost);
-        Debug.Log($"µ±Ç°·ÑÓÃÔö¼Ó{amount}£¬Ê£Óà£º{GameManager.Instance.currentCost}");
-        GameManager.Instance.UpdateCostUI(); // Ë¢ÐÂ·ÑÓÃUI
+        var gm = GameManager.Instance;
+        if (gm == null) return;
+        gm.currentCost = Mathf.Min(gm.currentCost + amount, gm.maxCost);
+        Debug.Log($"ï¿½ï¿½Ç°ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½{amount}ï¿½ï¿½Ê£ï¿½à£º{gm.currentCost}");
+        gm.UpdateCostUI();
     }
+
     private void IncreaseMaxCost(int amount)
     {
-        if (GameManager.Instance == null) return;
-        GameManager.Instance.maxCost += amount;
-        // Í¬²½¸üÐÂµ±Ç°·ÑÓÃ£¨¿ÉÑ¡£º×î´ó·ÑÓÃÔö¼ÓÊ±£¬µ±Ç°·ÑÓÃÒ²Í¬²½Ôö¼Ó£©
-        GameManager.Instance.currentCost += amount;
-        Debug.Log($"×î´ó·ÑÓÃÓÀ¾ÃÔö¼Ó{amount}£¬µ±Ç°×î´ó£º{GameManager.Instance.maxCost}");
-        GameManager.Instance.UpdateCostUI(); // Ë¢ÐÂ·ÑÓÃUI
+        var gm = GameManager.Instance;
+        if (gm == null) return;
+        gm.maxCost += amount;
+        gm.currentCost += amount;
+        Debug.Log($"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½{amount}ï¿½ï¿½ï¿½ï¿½Ç°ï¿½ï¿½ï¿½{gm.maxCost}");
+        gm.UpdateCostUI();
     }
+
     public void ExecuteDrawCardEffect(int count)
     {
-        // ·ÀÖ¹±»ÀÄÓÃ/Ò»´ÎÐÔ´´½¨´óÁ¿¶ÔÏóµ¼ÖÂ±ÀÀ££ºÏÞÖÆÉÏÏÞ
         const int MaxDrawPerEffect = 10;
         if (count <= 0) return;
         if (count > MaxDrawPerEffect)
         {
-            Debug.LogWarning($"ExecuteDrawCardEffect: ÇëÇó³éÈ¡ {count} ÕÅ£¬ÒÑÏÞÖÆÎª {MaxDrawPerEffect} ÕÅÒÔ·ÀÖ¹Ë²Ê±´óÁ¿ÊµÀý»¯¡£");
+            Debug.LogWarning($"ExecuteDrawCardEffect: ï¿½ï¿½ï¿½ï¿½ï¿½È¡ {count} ï¿½Å£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Îª {MaxDrawPerEffect} ï¿½Å¡ï¿½");
             count = MaxDrawPerEffect;
         }
 
@@ -127,7 +170,8 @@ public class CardEffectManager : MonoBehaviour
             Debug.LogError("ExecuteDrawCardEffect: Deck.Instance Îª null");
             return;
         }
-        if (GameManager.Instance == null)
+        var gm = GameManager.Instance;
+        if (gm == null)
         {
             Debug.LogError("ExecuteDrawCardEffect: GameManager.Instance Îª null");
             return;
@@ -136,40 +180,32 @@ public class CardEffectManager : MonoBehaviour
         for (int i = 0; i < count; i++)
         {
             Card drawnCard = Deck.Instance.DrawCard();
-            if (drawnCard != null)
+            if (drawnCard == null)
             {
-                // ÓÅÏÈÍ¨¹ý Hand µÄ½Ó¿ÚÌí¼Ó¿¨ÅÆ£¨Hand »á´¦Àí¸¸¶ÔÏó¡¢ÅÅÁÐµÈ£©
-                if (GameManager.Instance.Hand != null)
-                {
-                    GameManager.Instance.Hand.AddCard(drawnCard);
-                }
-                else
-                {
-                    // ¶µµ×£º°Ñ¿¨ÅÆ·Åµ½ handTransform£¨Èô´æÔÚ£©
-                    if (GameManager.Instance.handTransform != null)
-                    {
-                        drawnCard.transform.SetParent(GameManager.Instance.handTransform, false);
-                        drawnCard.transform.localScale = Vector3.one;
-                    }
-                    else
-                    {
-                        Debug.LogWarning("ExecuteDrawCardEffect: ÎÞ Hand ºÍ handTransform£¬¿¨ÅÆ½«±£³Ö³¡¾°¸ù½Úµã¡£");
-                    }
-                }
+                Debug.Log("ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ DrawCard ï¿½ï¿½ï¿½ï¿½ nullï¿½ï¿½Í£Ö¹ï¿½é¿¨");
+                break;
+            }
+
+            if (gm.Hand != null)
+            {
+                gm.Hand.AddCard(drawnCard);
+            }
+            else if (gm.handTransform != null)
+            {
+                drawnCard.transform.SetParent(gm.handTransform, false);
+                drawnCard.transform.localScale = Vector3.one;
             }
             else
             {
-                Debug.Log("³éÅÆÊýÁ¿³¬¹ýÊ£ÓàÅÆÊý»ò DrawCard ·µ»Ø null£¬Í£Ö¹³é¿¨");
-                break;
+                Debug.LogWarning("ExecuteDrawCardEffect: ï¿½ï¿½ Hand ï¿½ï¿½ handTransformï¿½ï¿½ï¿½ï¿½ï¿½Æ½ï¿½ï¿½ï¿½ï¿½Ö³ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Úµã¡£");
             }
         }
     }
 
-    private IEnumerator TemporaryInvincible(GameObject player, float duration)
+    private IEnumerator TemporaryInvincible(float duration)
     {
-        // Õ¼Î»£ºÈç¹ûÍæ¼ÒÓÐÎÞµÐ½Ó¿Ú£¬ÔÚ´Ëµ÷ÓÃ
-        Debug.Log($"Ê¹Íæ¼ÒÎÞµÐ {duration} Ãë£¨Õ¼Î»£©");
+        Debug.Log($"Ê¹ï¿½ï¿½ï¿½ï¿½Þµï¿½ {duration} ï¿½ë£¨Õ¼Î»ï¿½ï¿½");
         yield return new WaitForSeconds(duration);
-        Debug.Log("ÎÞµÐ½áÊø£¨Õ¼Î»£©");
+        Debug.Log("ï¿½ÞµÐ½ï¿½ï¿½ï¿½ï¿½ï¿½Õ¼Î»ï¿½ï¿½");
     }
 }
