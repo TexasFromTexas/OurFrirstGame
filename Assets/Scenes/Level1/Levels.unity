@@ -427,6 +427,18 @@ PrefabInstance:
       propertyPath: m_Name
       value: Restart
       objectReference: {fileID: 0}
+    - target: {fileID: 6813746725736734037, guid: e8d9e569fa7e75d439311c35f52f2c4c, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
+      value: 
+      objectReference: {fileID: 1687538563}
+    - target: {fileID: 6813746725736734037, guid: e8d9e569fa7e75d439311c35f52f2c4c, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
+      value: ReStart
+      objectReference: {fileID: 0}
+    - target: {fileID: 6813746725736734037, guid: e8d9e569fa7e75d439311c35f52f2c4c, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
+      value: losePanel, Assembly-CSharp
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -2486,6 +2498,18 @@ PrefabInstance:
       propertyPath: m_Name
       value: Back
       objectReference: {fileID: 0}
+    - target: {fileID: 4777500529882313877, guid: 785a1df9d990b574f97baf37a370033b, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
+      value: 
+      objectReference: {fileID: 1816270118}
+    - target: {fileID: 4777500529882313877, guid: 785a1df9d990b574f97baf37a370033b, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
+      value: Back
+      objectReference: {fileID: 0}
+    - target: {fileID: 4777500529882313877, guid: 785a1df9d990b574f97baf37a370033b, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
+      value: winPanel, Assembly-CSharp
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -3086,6 +3110,18 @@ PrefabInstance:
       propertyPath: m_Name
       value: Back
       objectReference: {fileID: 0}
+    - target: {fileID: 4777500529882313877, guid: 785a1df9d990b574f97baf37a370033b, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
+      value: 
+      objectReference: {fileID: 1687538563}
+    - target: {fileID: 4777500529882313877, guid: 785a1df9d990b574f97baf37a370033b, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
+      value: Back
+      objectReference: {fileID: 0}
+    - target: {fileID: 4777500529882313877, guid: 785a1df9d990b574f97baf37a370033b, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
+      value: losePanel, Assembly-CSharp
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -3209,6 +3245,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3d75bac931b113948a3477e9549d32f3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  win: {fileID: 1816270116}
+  lose: {fileID: 1687538561}
   panel: {fileID: 1115503034}
   delayTime: 1
 --- !u!4 &2099026835

@@ -19,12 +19,10 @@ public class WorFPanel : MonoBehaviour
     {
         if (PlayerHp.GetCurrentHealth() <= 0)
         {
-            Time.timeScale = 0;
             losePanel.SetActive(true);
         } ;
         if (isWin())
         {
-            Time.timeScale = 0;
             winPanel.SetActive(true);
         }
     }
