@@ -19,7 +19,7 @@ GameObject:
   - component: {fileID: 7732931033070896541}
   m_Layer: 0
   m_Name: Player
-  m_TagString: Untagged
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -105,9 +105,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   maxHealth: 10
   isPlayer: 1
-  bgm: {fileID: 0}
-  isBoss: 0
   bloodBar: {fileID: 0}
+  damageTextManager: {fileID: 0}
 --- !u!114 &2794443903782381994
 MonoBehaviour:
   m_ObjectHideFlags: 0
